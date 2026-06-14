@@ -4,6 +4,7 @@ const productRoutes = require("./routes/product-route");
 const paymentMethodRoutes = require("./routes/payment-method-route");
 const itemRoutes = require("./routes/item-route");
 const installmentRoutes = require("./routes/installment-route");
+const orderRoutes = require("./routes/order-route");
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.use("/luizao/installments", installmentRoutes);
 
 const errorHandler = require('./middlewares/error-handler');
 app.use(errorHandler);
+app.use("/luizao/orders", orderRoutes);
 
 module.exports = app;
