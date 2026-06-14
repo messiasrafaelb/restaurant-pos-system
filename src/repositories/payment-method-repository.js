@@ -1,32 +1,30 @@
 const pool = require("../config/db");
+const PaymentMethodFilter = require("./filters/payment-method-filter");
+const PaymentMethod = require("../models/payment-method-model");
 
 async function findAll(filters = {}) {
-    let query = `SELECT * FROM PAYMENT_METHOD WHERE 1=1`;
-    const values = [];
-
-    if (filters.code) {
-        values.push(`%${filters.code}%`);
-        query += ` AND CODE ILIKE $${values.length}`
-    }
-
-    if (filters.name) {
-        values.push(`%${filters.name}%`);
-        query += ` AND NAME ILIKE $${values.length}`;
-    }
-
+    const { query, values } = PaymentMethodFilter.build(filters);
     const result = await pool.query(query, values);
 
-    return result.rows;
+    return result.rows.map(row => PaymentMethod.from(row));
 }
 
 async function findById(id) {
-    const query = `SELECT * FROM PAYMENT_METHOD ID = $1`;
+    const query = `SELECT * FROM PAYMENT_METHOD WHERE ID = $1`;
     const result = await pool.query(query, [id]);
 
-    return result.rows[0];
+    return result.rows[0] ? PaymentMethod.from(result.rows[0]) : null;
+}
+
+async function inactivate(id) {
+    const query = `UPDATE PAYMENT_METHOD SET STATUS = 'INATIVO' WHERE ID = $1 RETURNING *`;
+    const result = await pool.query(query, [id]);
+
+    return result.rows[0] ? PaymentMethod.from(result.rows[0]) : null;
 }
 
 module.exports = {
     findAll,
     findById,
+    inactivate
 }

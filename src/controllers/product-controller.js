@@ -1,18 +1,26 @@
 const productService = require('../services/product-service');
-const product = require('../models/product-model');
+const ProductFilter = require('../repositories/filters/product-filter');
+const { ProductDTO } = require('../dtos');
 
-async function save(req, res){
+async function save(req, res, next){
     try {
-        const response = await productService.save(req.body);
-    
+        if (!req.body || !req.body.name) {
+            const err = new Error('Nome do produto é obrigatório');
+            err.status = 400;
+            throw err;
+        }
+
+        const entity = ProductDTO.toEntity(req.body);
+        const response = await productService.save(entity);
+
         res.status(201).json(response);
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({message: err.message});
+        return next(err);
     }
 }
 
-async function findById(req, res){
+async function findById(req, res, next){
     try {
         const {id} = req.params;
         const response = await productService.findByIdOrThrow(id);
@@ -21,30 +29,24 @@ async function findById(req, res){
         
     } catch (err) {
         console.error(err.message)
-        res.status(500).json({message: err.message});
+        return next(err);
     }
 }
 
-async function findAll(req, res){
+async function findAll(req, res, next){
     try {
-        const {name, status, createdAt} = req.query;
-        const filters = {
-            name,
-            status,
-            createdAt// createdAt: new Date(createdAt)
-        }
-        console.log(filters)
+        const filters = ProductFilter.parseQuery(req.query);
         const response = await productService.findAll(filters);
-    
+
         res.status(200).json(response);
         
     } catch (err) {
         console.error(err.message)
-        res.status(500).json({message: err.message});
+        return next(err);
     }
 }
 
-async function updateStatus(req, res){
+async function updateStatus(req, res, next){
     try {
         const {id} = req.params;
         const response = await productService.updateStatus(id);
@@ -53,7 +55,7 @@ async function updateStatus(req, res){
         
     } catch (err) {
         console.error(err.message)
-        res.status(500).json({message: err.message});
+        return next(err);
     }
 }
 module.exports = {

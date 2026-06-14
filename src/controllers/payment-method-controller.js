@@ -1,32 +1,42 @@
 const service = require("../services/payment-method-service");
 
-async function findAll(req, res) {
-    try {
-        const filters = {
-            name: req.query.name,
-            code: req.query.code
-        };
+const PaymentMethodFilter = require("../repositories/filters/payment-method-filter");
 
+async function findAll(req, res, next) {
+    try {
+        const filters = PaymentMethodFilter.parseQuery(req.query);
         const paymentMethods = await service.findAll(filters);
 
         return res.json(paymentMethods);
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return next(error);
     }
 }
 
-async function findById(req, res) {
+async function findById(req, res, next) {
     try {
         const id = req.params.id;
         const paymentMethod = await service.findByIdOrThrow(id);
 
         return res.json(paymentMethod);
     } catch (error) {
-        return res.status(404).json({ message: error.message });
+        return next(error);
+    }
+}
+
+async function inactivate(req, res, next) {
+    try {
+        const id = req.params.id;
+        const paymentMethod = await service.inactivate(id);
+
+        return res.json(paymentMethod);
+    } catch (error) {
+        return next(error);
     }
 }
 
 module.exports = {
     findAll,
-    findById
+    findById,
+    inactivate
 };

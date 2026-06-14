@@ -1,78 +1,44 @@
 const pool = require('../config/db');
+const ProductFilter = require('./filters/product-filter');
+const { Product } = require('../models/product-model');
 
-async function save(product){
-    const query = "INSERT INTO product (name, status, minimum_stock, quantity_stock, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+async function save(product) {
+    const query = `
+    INSERT INTO PRODUCT
+    (NAME, STATUS, MINIMUM_STOCK, QUANTITY_STOCK, CREATED_AT)
+    VALUES ($1, $2, $3, $4, $5) RETURNING *`;
 
-    try {
-        
-        const values = [
-            product.name,
-            product.status,
-            product.minimum_stock,
-            product.quantity_stock,
-            product.created_at
-        ];
+    const values = Product.toDbParams(product);
 
-        const data = await pool.query(query, values);
-        return data.rows[0];
+    const data = await pool.query(query, values);
 
-    } catch (err) {
-        console.error(err.message);
-    }
+    return data.rows[0] ? Product.from(data.rows[0]) : null;
 }
 
-async function findAll(filters = {}){
-    let query = "SELECT * FROM product WHERE 1=1";
-    values = [];
+async function findAll(filters = {}) {
+    const { query, values } = ProductFilter.build(filters);
 
-    if(filters.name){
-        values.push(`%${filters.name}%`);
-        query += ` AND name ILIKE $${values.length}`;
-    }
+    const data = await pool.query(query, values);
 
-    if(filters.status){
-        values.push(`${filters.status}%`);
-        query += ` AND status ILIKE $${values.length}`;
-    }
-
-    if(filters.createdAt){
-        values.push(`%${filters.createdAt}%`);
-        query += ` AND DATE(created_at) = DATE($${values.length})`;
-    }
-
-    if(filters.minimum){
-        query += ` AND quantity_stock <= minimum_stock`;
-    }
-
-    try {
-        console.log(query);
-        const data = await pool.query(query, values);
-        return data.rows;
-    } catch (err) {
-        console.error(err.message)
-    }
+    return data.rows.map(Product.from);
 }
 
-async function findById(id){
-    const query = "SELECT * FROM product WHERE id = $1";
-    const values = [id]
-    try {
-        const data = pool.query(query, values);
-        return (await data).rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+async function findById(id) {
+    const query = "SELECT * FROM PRODUCT WHERE ID = $1";
+    const values = [id];
+
+    const data = await pool.query(query, values);
+
+    return data.rows[0] ? Product.from(data.rows[0]) : null;
 }
 
-async function updateStatus(id, status){
+async function updateStatus(id, status) {
     const query = "UPDATE PRODUCT SET STATUS = $1 WHERE ID = $2 RETURNING *";
     const values = [status, id];
-    try {
-        const data = pool.query(query, values);
-        return (await data).rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+
+    const data = await pool.query(query, values);
+
+    return data.rows[0] ? Product.from(data.rows[0]) : null;
 }
 
 module.exports = {
@@ -81,8 +47,3 @@ module.exports = {
     findById,
     updateStatus
 }
-
-
-
-
-
