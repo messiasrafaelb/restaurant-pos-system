@@ -49,13 +49,13 @@ async function findAll(filters = {}){
         const data = await pool.query(query, values);
         return data.rows;
     } catch (err) {
-        console.error(err.message)
+        console.error(err.message);
     }
 }
 
 async function findById(id){
     const query = "SELECT * FROM product WHERE id = $1";
-    const values = [id]
+    const values = [id];
     try {
         const data = pool.query(query, values);
         return (await data).rows[0];

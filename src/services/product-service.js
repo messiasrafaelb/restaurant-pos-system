@@ -1,5 +1,5 @@
 const productRepository = require('../repositories/product-repository');
-const { Product } = require('../models/product-model');
+const {Product} = require('../models/product-model');
 
 const MSG_PRODUCT_NOT_FOUND = "Produto não encontrado"
 

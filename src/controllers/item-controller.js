@@ -1,8 +1,11 @@
-const productService = require('../services/product-service');
+const itemService = require('../services/item-service');
 
 async function save(req, res){
     try {
-        const response = await productService.save(req.body);
+        if(req.body.price <= 0){
+            throw new Error("Não é permitido cadastrar produtos gratis");
+        }
+        const response = await itemService.save(req.body);
     
         res.status(201).json(response);
     } catch (err) {
@@ -14,7 +17,7 @@ async function save(req, res){
 async function findById(req, res){
     try {
         const {id} = req.params;
-        const response = await productService.findByIdOrThrow(id);
+        const response = await itemService.findByIdOrThrow(id);
     
         res.status(200).json(response);
         
@@ -26,14 +29,15 @@ async function findById(req, res){
 
 async function findAll(req, res){
     try {
-        const {name, status, createdAt} = req.query;
+        const {name, description, status, createdAt} = req.query;
         const filters = {
             name,
             status,
-            createdAt// createdAt: new Date(createdAt)
+            createdAt,// createdAt: new Date(createdAt)
+            description,
         }
         console.log(filters)
-        const response = await productService.findAll(filters);
+        const response = await itemService.findAll(filters);
     
         res.status(200).json(response);
         
@@ -46,7 +50,7 @@ async function findAll(req, res){
 async function updateStatus(req, res){
     try {
         const {id} = req.params;
-        const response = await productService.updateStatus(id);
+        const response = await itemService.updateStatus(id);
     
         res.status(200).json(response);
         
