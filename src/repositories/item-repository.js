@@ -1,16 +1,12 @@
 const pool = require("../config/db");
+const ItemFilter = require("./filters/item-filter");
+const { Item } = require("../models/item-model");
 
 async function save(item, client){
-    const query = "INSERT INTO ITEM (name, description, price, status, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+    const query = "INSERT INTO ITEM (NAME, DESCRIPTION, PRICE, STATUS, CREATED_AT) VALUES ($1, $2, $3, $4, $5) RETURNING *";
 
     try {
-        const values = [
-            item.name,
-            item.description,
-            item.price,
-            item.status,
-            item.created_at
-        ];
+        const values = Item.toDbParams(item);
 
         const data = await client.query(query, values);
         return data.rows[0];
@@ -21,48 +17,9 @@ async function save(item, client){
 }
 
 async function findAll(filters = {}){
-    let query = `
-        SELECT
-            i.id AS item_id,
-            i.name AS item_name,
-            i.description AS item_description,
-            i.price AS item_price,
-            i.status AS item_status,
-            i.created_at AS item_created_at,
-            p.id AS product_id,
-            p.name AS product_name,
-            p.status AS product_status,
-            pi.quantity AS product_quantity_used,
-            p.quantity_stock AS product_quantity
-        FROM item i
-        LEFT JOIN product_item pi ON pi.fk_item = i.id
-        LEFT JOIN product p ON p.id = pi.fk_product
-        WHERE 1=1
-    `;
-    values = [];
-
-    if(filters.name){
-        values.push(`%${filters.name}%`);
-        query += ` AND i.name ILIKE $${values.length}`;
-    }
-    
-    if(filters.description){
-        values.push(`%${filters.description}%`);
-        query += ` AND i.description ILIKE $${values.length}`;
-    }
-
-    if(filters.status){
-        values.push(`${filters.status}%`);
-        query += ` AND i.status ILIKE $${values.length}`;
-    }
-
-    if(filters.createdAt){
-        values.push(`%${filters.createdAt}%`);
-        query += ` AND DATE(i.created_at) = DATE($${values.length})`;
-    }
+    const { query, values } = ItemFilter.build(filters);
 
     try {
-        console.log(query);
         const data = await pool.query(query, values);
         return data.rows;
     } catch (err) {
@@ -71,28 +28,43 @@ async function findAll(filters = {}){
 }
 
 async function findById(id){
-    const query = "SELECT * FROM item WHERE id = $1";
+    const query = `
+        SELECT
+            I.ID AS ITEM_ID,
+            I.NAME AS ITEM_NAME,
+            I.DESCRIPTION AS ITEM_DESCRIPTION,
+            I.PRICE AS ITEM_PRICE,
+            I.STATUS AS ITEM_STATUS,
+            I.CREATED_AT AS ITEM_CREATED_AT,
+            P.ID AS PRODUCT_ID,
+            P.NAME AS PRODUCT_NAME,
+            P.STATUS AS PRODUCT_STATUS,
+            PI.QUANTITY AS PRODUCT_QUANTITY_USED,
+            P.QUANTITY_STOCK AS PRODUCT_QUANTITY
+        FROM ITEM I
+        LEFT JOIN PRODUCT_ITEM PI ON PI.FK_ITEM = I.ID
+        LEFT JOIN PRODUCT P ON P.ID = PI.FK_PRODUCT
+        WHERE I.ID = $1
+    `;
     const values = [id];
     try {
-        const data = pool.query(query, values);
-        return (await data).rows[0];
+        const data = await pool.query(query, values);
+        return data.rows;
     } catch (err) {
         console.error(err.message);
     }
 }
 
 async function updateStatus(id, status){
-    const query = "UPDATE item SET STATUS = $1 WHERE ID = $2 RETURNING *";
+    const query = "UPDATE ITEM SET STATUS = $1 WHERE ID = $2 RETURNING *";
     const values = [status, id];
     try {
-        const data = pool.query(query, values);
-        return (await data).rows[0];
+        const data = await pool.query(query, values);
+        return data.rows[0];
     } catch (err) {
         console.error(err.message);
     }
 }
-
-
 
 module.exports = {
     save,

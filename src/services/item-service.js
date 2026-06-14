@@ -12,13 +12,7 @@ async function save(request){
     try{
         await client.query('BEGIN');
 
-        const item = new Item({
-            name: request.name,
-            description: request.description,
-            price: request.price,
-            status: 'ATIVO',
-            created_at: new Date()
-        });
+        const item = Item.from(request);
         
         const itemResult = await itemRepository.save(item, client);
         
@@ -30,11 +24,12 @@ async function save(request){
         }
     
         await client.query('COMMIT');
-        return itemResult
+        return ItemDTO.fromModel(itemResult);
 
     }catch(err){
         await client.query('ROLLBACK');
-        console.log(err.message)
+        console.log(err.message);
+        throw err;
     }finally{
         client.release();
     }
@@ -46,18 +41,27 @@ async function findAll(filters = {}){
 }
 
 async function findByIdOrThrow(id){
-    const data = await itemRepository.findById(id);
-    if (!data){
-        throw new Error(MSG_ITEM_NOT_FOUND);
-    }else{
-        return data;
+    const rows = await itemRepository.findById(id);
+    if (!rows || rows.length === 0){
+        const err = new Error(MSG_ITEM_NOT_FOUND);
+        err.status = 404;
+        throw err;
     }
+
+    return ItemDTO.fromRows(rows)[0];
 }
 
 async function updateStatus(id){
-    const item = await findByIdOrThrow(id);
-    const data = await itemRepository.updateStatus(id, item.status.toLowerCase() == "ativo" ? "INATIVO" : "ATIVO");
-    return data;
+    const item = await itemRepository.findById(id);
+    if (!item){
+        const err = new Error(MSG_ITEM_NOT_FOUND);
+        err.status = 404;
+        throw err;
+    }
+
+    const nextStatus = item.status.toLowerCase() === 'ativo' ? 'INATIVO' : 'ATIVO';
+    const data = await itemRepository.updateStatus(id, nextStatus);
+    return ItemDTO.fromModel(data);
 }
 
 

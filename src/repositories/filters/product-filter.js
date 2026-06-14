@@ -23,7 +23,7 @@ class ProductFilter {
     }
 
     static build(filters = {}) {
-        let query = 'SELECT * FROM product WHERE 1=1';
+        let query = 'SELECT * FROM PRODUCT WHERE 1=1';
         const values = [];
 
         if (filters.name) {

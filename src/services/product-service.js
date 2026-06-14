@@ -30,7 +30,7 @@ async function findByIdOrThrow(id){
 async function updateStatus(id){
     const product = await findByIdOrThrow(id);
     const data = await productRepository.updateStatus(id, product.status.toLowerCase() == "ativo" ? "INATIVO" : "ATIVO");
-    return data;
+    return ProductDTO.fromModel(data);
 }
 
 
