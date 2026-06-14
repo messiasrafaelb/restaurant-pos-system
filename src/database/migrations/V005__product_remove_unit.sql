@@ -1,0 +1,1 @@
+ALTER TABLE product DROP COLUMN unit_measure;
