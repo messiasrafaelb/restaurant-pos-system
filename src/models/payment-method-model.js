@@ -27,4 +27,4 @@ class PaymentMethod {
     }
 }
 
-module.exports = PaymentMethod;
+module.exports = {PaymentMethod};
