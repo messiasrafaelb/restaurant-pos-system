@@ -1,40 +1,34 @@
 const service = require("../services/user-service");
+const UserFilter = require('../repositories/filters/user-filter');
 
-async function findAll(req, res) {
+async function findAll(req, res, next) {
   try {
-    const filters = {
-      nome: req.query.name,
-      status: req.query.status,
-      role: req.query.role,
-      createdAt: req.query.createdAt
-    };
-
-    const user = await service.findAll(filters);
-
-    return res.json(user);
+    const filters = UserFilter.parseQuery(req.query);
+    const users = await service.findAll(filters);
+    return res.status(200).json(users);
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return next(error);
   }
 }
 
-async function findById(req, res) {
+async function findById(req, res, next) {
     try{
         const id = req.params.id;
         const user = await service.findByIdOrThrow(id);
 
-        return res.json(user);
+        return res.status(200).json(user);
     } catch (error) {
-        return res.status(404).json ({ message: error.message });
+        return next(error);
     }
 }
 
-async function save(req, res) {
+async function save(req, res, next) {
     try{
         const response = await service.save(req.body);
 
-        return res.json(response);
+        return res.status(201).json(response);
     } catch (error) {
-        return res.status(404).json ({ message: error.message });
+        return next(error);
     }
 }
 module.exports = {

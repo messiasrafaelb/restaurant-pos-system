@@ -1,33 +1,30 @@
 const repository = require("../repositories/user-repository");
-const User = require ("../models/user-model");
+const { User } = require("../models/user-model");
+const { UserDTO } = require("../dtos");
+
 const MSG_USER_NOT_FOUND = "Usuário não encontrado.";
 
-async function findAll(filters) {
-    return await repository.findAll(filters);
+async function findAll(filters = {}) {
+    const users = await repository.findAll(filters);
+    return users.map(UserDTO.fromModel);
 }
 
 async function findByIdOrThrow(id) {
     const user = await repository.findById(id);
 
     if (user == null) {
-        throw new Error(MSG_USER_NOT_FOUND);
+        const err = new Error(MSG_USER_NOT_FOUND);
+        err.status = 404;
+        throw err;
     }
 
-    return user;
+    return UserDTO.fromModel(user);
 }
 
 async function save(request) {
-
-    const user = new User({
-        name = request.name,
-        email = request.email,
-        password = request.password,
-        role = request.role,
-        status = "ATIVO",
-        created_at = new Date()
-    })
-
-    return await repository.save(user);
+    const user = User.from(request);
+    const saved = await repository.save(user);
+    return UserDTO.fromModel(saved);
 }
 
 module.exports = {
