@@ -15,10 +15,9 @@ app.use("/luizao/products", productRoutes);
 app.use("/luizao/payment-methods", paymentMethodRoutes);
 app.use("/luizao/items", itemRoutes);
 app.use("/luizao/installments", installmentRoutes);
-
+app.use("/luizao/orders", orderRoutes);
 
 const errorHandler = require('./middlewares/error-handler');
 app.use(errorHandler);
-app.use("/luizao/orders", orderRoutes);
 
 module.exports = app;
