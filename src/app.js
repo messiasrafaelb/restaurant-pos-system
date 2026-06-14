@@ -1,6 +1,6 @@
 const express = require("express");
-const productRoute = require("./routes/product-route")
 
+const productRoute = require("./routes/product-route")
 const paymentMethodRoutes = require("./routes/payment-method-routes");
 
 const app = express();
