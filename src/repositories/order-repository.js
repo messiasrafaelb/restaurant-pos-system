@@ -1,75 +1,36 @@
 const pool = require('../config/db');
+const OrderFilter = require('./filters/order-filter');
+const { Order } = require('../models/order-model');
 
-async function save(order){
-    const query = "INSERT INTO orders (code, observations, order_status, created_at) VALUES ($1, $2, $3, $4) RETURNING *";
+async function save(order) {
+  const query = `INSERT INTO ORDERS (CODE, OBSERVATIONS, ORDER_STATUS, CREATED_AT) VALUES ($1, $2, $3, $4) RETURNING *`;
+  const values = Order.toDbParams(order);
 
-    try {
-        const values = [
-            order.code,
-            order.observations,
-            order.order_status,
-            order.created_at,
-        ];
-
-        const data = await pool.query(query, values);
-        return data.rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+  const data = await pool.query(query, values);
+  return data.rows[0] ? Order.from(data.rows[0]) : null;
 }
 
-async function findAll(filters = {}){
-    let query = "SELECT * FROM orders WHERE 1=1";
-    const values = [];
-
-    if(filters.code){
-        values.push(`%${filters.code}%`);
-        query += ` AND code ILIKE $${values.length}`;
-    }
-
-    if(filters.orderStatus){
-        values.push(`%${filters.orderStatus}%`);
-        query += ` AND order_status ILIKE $${values.length}`;
-    }
-
-    if(filters.createdAt){
-        values.push(filters.createdAt);
-        query += ` AND DATE(created_at) = DATE($${values.length})`;
-    }
-
-    try {
-        const data = await pool.query(query, values);
-        return data.rows;
-    } catch (err) {
-        console.error(err.message);
-    }
+async function findAll(filters = {}) {
+  const { query, values } = OrderFilter.build(filters);
+  const data = await pool.query(query, values);
+  return data.rows.map(Order.from);
 }
 
-async function findById(id){
-    const query = "SELECT * FROM orders WHERE id = $1";
-    const values = [id];
-    try {
-        const data = await pool.query(query, values);
-        return data.rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+async function findById(id) {
+  const query = `SELECT * FROM ORDERS WHERE ID = $1`;
+  const data = await pool.query(query, [id]);
+  return data.rows[0] ? Order.from(data.rows[0]) : null;
 }
 
-async function updateStatus(id, status){
-    const query = "UPDATE orders SET order_status = $1 WHERE id = $2 RETURNING *";
-    const values = [status, id];
-    try {
-        const data = await pool.query(query, values);
-        return data.rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+async function updateStatus(id, status) {
+  const query = `UPDATE ORDERS SET ORDER_STATUS = $1 WHERE ID = $2 RETURNING *`;
+  const data = await pool.query(query, [status, id]);
+  return data.rows[0] ? Order.from(data.rows[0]) : null;
 }
 
 module.exports = {
-    save,
-    findAll,
-    findById,
-    updateStatus
+  save,
+  findAll,
+  findById,
+  updateStatus
 };

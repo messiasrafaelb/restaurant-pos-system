@@ -17,7 +17,6 @@ app.use("/luizao/products", productRoutes);
 app.use("/luizao/payment-methods", paymentMethodRoutes);
 app.use("/luizao/items", itemRoutes);
 app.use("/luizao/installments", installmentRoutes);
-app.use("/luizao/orders", orderRoutes);
-app.use("/luizao/user", userRoutes);
+app.use("/luizao/orders", orderRoutes);app.use("/luizao/user", userRoutes);
 
 module.exports = app;
