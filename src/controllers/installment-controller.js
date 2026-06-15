@@ -7,9 +7,19 @@ async function save(req, res, next) {
         const hasAmount = req.body && req.body.amount != null;
         const hasDueDate = req.body && (req.body.due_date || req.body.dueDate);
         const hasPaymentMethod = req.body && (req.body.fk_payment_method || req.body.paymentMethodId);
+        const hasSale = req.body && (req.body.fk_sale || req.body.saleId);
 
-        if (!hasAmount || !hasDueDate || !hasPaymentMethod) {
-            const err = new Error('Campos obrigatórios: amount, due_date/dueDate, fk_payment_method/paymentMethodId');
+        if (!hasAmount || !hasDueDate || !hasPaymentMethod || !hasSale) {
+            const err = new Error('Campos obrigatórios: amount, due_date/dueDate, fk_payment_method/paymentMethodId, fk_sale/saleId');
+            err.status = 400;
+            throw err;
+        }
+
+        const saleId = parseInt(req.body.saleId ?? req.body.fk_sale, 10);
+        const paymentMethodId = parseInt(req.body.paymentMethodId ?? req.body.fk_payment_method, 10);
+
+        if (isNaN(saleId) || isNaN(paymentMethodId)) {
+            const err = new Error('saleId e paymentMethodId devem ser números válidos');
             err.status = 400;
             throw err;
         }

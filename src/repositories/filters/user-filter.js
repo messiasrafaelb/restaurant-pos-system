@@ -13,12 +13,12 @@ class UserFilter {
     static build(filters = {}){
         let query = `
             SELECT
-                U.ID AS USER_ID,
-                U.NAME AS USER_NAME,
-                U.EMAIL AS USER_EMAIL,
-                U.ROLE AS USER_ROLE,
-                U.STATUS AS USER_STATUS,
-                U.CREATED_AT AS USER_CREATED_AT
+                U.ID AS id,
+                U.NAME AS name,
+                U.EMAIL AS email,
+                U.ROLE AS role,
+                U.STATUS AS status,
+                U.CREATED_AT AS created_at
             FROM USERS U
             WHERE 1=1
         `;

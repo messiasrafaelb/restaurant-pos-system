@@ -2,9 +2,9 @@
   "name": "restaurant-pos-system",
   "version": "1.0.0",
   "description": "POS system project",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "migrate": "node src/database/run-migrations.js"
   },

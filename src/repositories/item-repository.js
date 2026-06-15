@@ -4,27 +4,15 @@ const { Item } = require("../models/item-model");
 
 async function save(item, client){
     const query = "INSERT INTO ITEM (NAME, DESCRIPTION, PRICE, STATUS, CREATED_AT) VALUES ($1, $2, $3, $4, $5) RETURNING *";
-
-    try {
-        const values = Item.toDbParams(item);
-
-        const data = await client.query(query, values);
-        return data.rows[0];
-
-    } catch (err) {
-        console.error(err.message);
-    }
+    const values = Item.toDbParams(item);
+    const data = await client.query(query, values);
+    return data.rows[0];
 }
 
 async function findAll(filters = {}){
     const { query, values } = ItemFilter.build(filters);
-
-    try {
-        const data = await pool.query(query, values);
-        return data.rows;
-    } catch (err) {
-        console.error(err.message);
-    }
+    const data = await pool.query(query, values);
+    return data.rows;
 }
 
 async function findById(id){
@@ -47,23 +35,15 @@ async function findById(id){
         WHERE I.ID = $1
     `;
     const values = [id];
-    try {
-        const data = await pool.query(query, values);
-        return data.rows;
-    } catch (err) {
-        console.error(err.message);
-    }
+    const data = await pool.query(query, values);
+    return data.rows;
 }
 
 async function updateStatus(id, status){
     const query = "UPDATE ITEM SET STATUS = $1 WHERE ID = $2 RETURNING *";
     const values = [status, id];
-    try {
-        const data = await pool.query(query, values);
-        return data.rows[0];
-    } catch (err) {
-        console.error(err.message);
-    }
+    const data = await pool.query(query, values);
+    return data.rows[0];
 }
 
 module.exports = {

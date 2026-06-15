@@ -16,6 +16,7 @@ class InstallmentDTO {
       id: installment.id,
       number: installment.number,
       amount: installment.amount,
+      saleId: installment.saleId ?? installment.fk_sale,
       paymentMethodId: installment.paymentMethodId ?? installment.fk_payment_method,
       dueDate: formatDate(installment.dueDate ?? installment.due_date),
       status: installment.status,
@@ -24,10 +25,14 @@ class InstallmentDTO {
   }
 
   static toEntity(payload) {
+    const saleId = payload.saleId ?? payload.fk_sale;
+    const paymentMethodId = payload.paymentMethodId ?? payload.fk_payment_method;
+    
     return {
       number: payload.number,
       amount: payload.amount,
-      fk_payment_method: payload.paymentMethodId ?? payload.fk_payment_method,
+      saleId: saleId ? parseInt(saleId, 10) : null,
+      paymentMethodId: paymentMethodId ? parseInt(paymentMethodId, 10) : null,
       due_date: payload.dueDate ? new Date(payload.dueDate) : null,
       status: payload.status ?? 'ATIVO',
       created_at: payload.createdAt ? new Date(payload.createdAt) : new Date()

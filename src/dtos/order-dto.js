@@ -25,7 +25,7 @@ class OrderDTO {
     return {
       code: payload.code,
       observations: payload.observations ?? null,
-      order_status: payload.orderStatus ?? payload.status ?? payload.order_status ?? 'OPEN',
+      status: payload.orderStatus ?? payload.status ?? payload.order_status ?? 'OPEN',
       created_at: payload.createdAt ? new Date(payload.createdAt) : new Date()
     };
   }

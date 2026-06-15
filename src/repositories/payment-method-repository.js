@@ -1,6 +1,6 @@
 const pool = require("../config/db");
 const PaymentMethodFilter = require("./filters/payment-method-filter");
-const PaymentMethod = require("../models/payment-method-model");
+const { PaymentMethod } = require("../models/payment-method-model");
 
 async function findAll(filters = {}) {
     const { query, values } = PaymentMethodFilter.build(filters);

@@ -16,6 +16,10 @@ async function save(request){
         
         const itemResult = await itemRepository.save(item, client);
         
+        if (!itemResult) {
+            throw new Error('Falha ao salvar item');
+        }
+
         const products = request.products || [];
 
         for (const product of products) {
@@ -28,7 +32,7 @@ async function save(request){
 
     }catch(err){
         await client.query('ROLLBACK');
-        console.log(err.message);
+        console.error(err.message);
         throw err;
     }finally{
         client.release();
@@ -52,14 +56,15 @@ async function findByIdOrThrow(id){
 }
 
 async function updateStatus(id){
-    const item = await itemRepository.findById(id);
-    if (!item){
+    const rows = await itemRepository.findById(id);
+    if (!rows || rows.length === 0){
         const err = new Error(MSG_ITEM_NOT_FOUND);
         err.status = 404;
         throw err;
     }
 
-    const nextStatus = item.status.toLowerCase() === 'ativo' ? 'INATIVO' : 'ATIVO';
+    const currentStatus = rows[0].item_status || rows[0].status;
+    const nextStatus = currentStatus.toLowerCase() === 'ativo' ? 'INATIVO' : 'ATIVO';
     const data = await itemRepository.updateStatus(id, nextStatus);
     return ItemDTO.fromModel(data);
 }
