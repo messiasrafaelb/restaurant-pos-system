@@ -31,9 +31,3 @@ O projeto foi construído utilizando as seguintes tecnologias:
 Antes de começar, você vai precisar ter instalado em sua máquina:
 * [Node.js](https://nodejs.org/en/) (versão LTS recomendada)
 * [PostgreSQL](https://www.postgresql.org/) ativo e rodando
-
-### 1. Clonando o Repositório
-
-```bash
-git clone [https://github.com/seu-usuario/luizao-lanches.git](https://github.com/seu-usuario/luizao-lanches.git)
-cd luizao-lanches
