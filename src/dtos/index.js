@@ -5,6 +5,7 @@ const ItemDTO = require('./item-dto');
 const OrderDTO = require('./order-dto');
 const OrderItemDTO = require('./order-item-dto');
 const { UserDTO } = require('./user-dto');
+const { SaleDTO } = require('./sale-dto');
 
 module.exports = {
   ProductDTO,
@@ -13,5 +14,6 @@ module.exports = {
   ItemDTO,
   OrderDTO,
   OrderItemDTO,
+  SaleDTO,
   UserDTO
 };

@@ -8,6 +8,7 @@ const paymentMethodRoutes = require("./routes/payment-method-route");
 const itemRoutes = require("./routes/item-route");
 const installmentRoutes = require("./routes/installment-route");
 const orderRoutes = require("./routes/order-route");
+const saleRoutes = require("./routes/sale-route");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,6 +19,7 @@ app.use("/luizao/items", itemRoutes);
 app.use("/luizao/installments", installmentRoutes);
 app.use("/luizao/orders", orderRoutes);
 app.use("/luizao/users", userRoutes);
+app.use("/luizao/sales", saleRoutes);
 
 app.use(errorHandler);
 
