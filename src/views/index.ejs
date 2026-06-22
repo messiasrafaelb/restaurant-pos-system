@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/restaurant-pos-system/src/public/style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
@@ -18,7 +18,7 @@
     <div class="sidebar">
         <div>
             <div class="logo mb-4">
-                <img src="/restaurant-pos-system/src/public/img/logo.png" alt="Logo">
+                <img src="/img/logo.png" alt="Logo">
             </div>
 
             <div class="menu">
@@ -94,7 +94,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-4">
+                    <div id="productsGrid" class="row g-4">
                         <div class="col-lg-4 col-md-6">
                             <div class="product-card" data-nome="X-Burguer" data-preco="18" data-category="lanche" data-stock="8" data-img="/img/Xburguer2.png">
                                 <div class="imagem">
@@ -228,7 +228,7 @@
                         <button type="button" class="btn btn-success btn-lg payment-method-btn px-4" data-method="Dinheiro">
                             <i class="bi bi-currency-dollar me-2"></i>Dinheiro
                         </button>
-                        <button type="button" class="btn btn-primary btn-lg payment-method-btn px-4" data-tela="tela-cartao">
+                        <button type="button" class="btn btn-primary btn-lg payment-method-btn px-4" data-method="Cartão" data-tela="tela-cartao">
                             <i class="bi bi-credit-card-2-front me-2"></i>Cartão
                         </button>
                         <button type="button" class="btn btn-warning btn-lg payment-method-btn px-4 text-dark" data-method="Pix">
@@ -315,15 +315,15 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-medium">Nome do Produto/Item</label>
-                                <input type="text" class="form-control form-control-lg" placeholder="Ex: X-Salada, Coca-Cola, Bacon Extra">
+                                <input id="productName" type="text" class="form-control form-control-lg" placeholder="Ex: X-Salada, Coca-Cola, Bacon Extra">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-medium">Preço de Venda (R$)</label>
-                                <input type="number" step="0.01" class="form-control form-control-lg" placeholder="0,00">
+                                <input id="productPrice" type="number" step="0.01" class="form-control form-control-lg" placeholder="0,00">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label fw-medium">Tipo/Categoria</label>
-                                <select class="form-select form-select-lg">
+                                <select id="productCategory" class="form-select form-select-lg">
                                     <option value="lanche">Lanche</option>
                                     <option value="bebida">Bebida</option>
                                     <option value="sobremesa">Sobremesa</option>
@@ -333,16 +333,17 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Descrição / Ingredientes do Produto</label>
-                            <textarea class="form-control" rows="2" placeholder="Ex: Pão artesanal, blend bovino 150g, queijo prato prêmio..."></textarea>
+                            <textarea id="productDescription" class="form-control" rows="2" placeholder="Ex: Pão artesanal, blend bovino 150g, queijo prato prêmio..."></textarea>
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-medium">Caminho da Imagem</label>
-                            <input type="text" class="form-control" placeholder="Ex: /img/produtos/xsalada.png">
+                            <input id="productImagePath" type="text" class="form-control" placeholder="Ex: /img/produtos/xsalada.png">
                         </div>
                         <button type="submit" class="btn btn-success btn-lg px-4 py-2 fw-semibold">
                             <i class="bi bi-save me-2"></i>Salvar no Sistema
                         </button>
                     </form>
+                    <div id="itemList" class="mt-4"></div>
                 </div>
             </div>
 
@@ -447,7 +448,7 @@
         </div>
     </div>
 
-    <script src="/restaurant-pos-system/src/public/script.js"></script>
+    <script src="/script.js"></script>
 </body>
 
 </html>
