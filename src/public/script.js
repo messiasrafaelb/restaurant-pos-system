@@ -137,29 +137,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateEstoqueView = () => {
         if (!estoqueList) return;
-        estoqueList.innerHTML = `
-            <div class="row row-cols-1 row-cols-md-2 g-3">
-                ${productCards.map(card => {
-                    const imgUrl = card.getAttribute('data-img') || card.dataset.img || '/img/logo.png';
-                    return `
-                    <div class="col">
-                        <div class="p-3 border rounded-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="${imgUrl}" alt="${card.dataset.nome}" width="70" style="object-fit: contain;" />
-                                <div>
-                                    <strong>${card.dataset.nome}</strong>
-                                    <div class="text-muted">Categoria: ${card.dataset.category}</div>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                Estoque: <strong>${card.dataset.stock || '0'}</strong>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                }).join('')}
-            </div>
-        `;
+
+        // Array com os ingredientes reais e insumos detalhados
+const ingredientes = [
+            { nome: "Bacon", categoria: "Insumo / Adicional", qtd: "20 Unid", status: "Estoque Crítico", classeBadge: "bg-warning text-dark" },
+            { nome: "Pão de Hambúrguer", categoria: "Insumo Base", qtd: "50 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Blend de Carne (150g)", categoria: "Insumo Base", qtd: "65 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Queijo Prato Cheddar", categoria: "Insumo / Adicional", qtd: "40 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Batata Palito Congelada", categoria: "Porção / Insumo", qtd: "15 kg", status: "Estoque Moderado", classeBadge: "bg-warning text-dark" },
+            { nome: "Alface Fresca", categoria: "Hortifrúti", qtd: "12 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Tomate", categoria: "Hortifrúti", qtd: "8 kg", status: "Estoque Moderado", classeBadge: "bg-warning text-dark" },
+            { nome: "Nuggets de Frango (Congelado)", categoria: "Porção / Insumo", qtd: "180 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Refrigerante Lata 350ml", categoria: "Bebida Pronta", qtd: "20 Unid", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Laranja (Suco Natural)", categoria: "Hortifrúti", qtd: "25 kg", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Base para Milkshake", categoria: "Insumo Sobremesa", qtd: "10 kg", status: "Estoque OK", classeBadge: "bg-success" },
+            { nome: "Ovomaltine Flocos", categoria: "Insumo Sobremesa", qtd: "5 kg", status: "Estoque OK", classeBadge: "bg-success" }
+        ];
+
+        // Monta as linhas da tabela dinamicamente com os ingredientes reais
+        estoqueList.innerHTML = ingredientes.map(item => `
+            <tr>
+                <td class="fw-semibold">${item.nome}</td>
+                <td>${item.categoria}</td>
+                <td class="fw-bold text-dark">${item.qtd}</td>
+                <td><span class="badge ${item.classeBadge} px-2 py-1">${item.status}</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
     };
 
     const completeOrder = (method) => {

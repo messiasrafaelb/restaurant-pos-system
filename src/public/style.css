@@ -1,9 +1,11 @@
-*{
+/* ==========================================================================
+   1. CONFIGURAÇÕES GERAIS E LAYOUT BASE
+   ========================================================================== */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-
 
 body {
     background: #F5F7FA;
@@ -11,7 +13,23 @@ body {
     overflow: hidden;
 }
 
-.sidebar{
+/* Container de conteúdo que segura os módulos SPA */
+.content {
+    flex: 1;
+    height: calc(100vh - 90px);
+    overflow: hidden;
+}
+
+/* Área geral de renderização de cada tela */
+.item-tela {
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   2. SIDEBAR (MENU LATERAL)
+   ========================================================================== */
+.sidebar {
     width: 260px;
     height: 100vh;
     background: #121212;
@@ -22,17 +40,19 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    z-index: 1000;
 }
+
 .logo img {
     width: 100%;
     border-radius: 20px;
 }
 
-.menu{
+.menu {
     margin-top: 30px;
 }
 
-.menu-item{
+.menu-item {
     width: 100%;
     height: 58px;
     border: none;
@@ -44,63 +64,29 @@ body {
     margin-bottom: 14px;
     font-size: 16px;
     font-weight: 500;
-    transition: .3s;
+    transition: transform 0.3s ease, background 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.menu-item i, 
+.menu-item img {
+    margin-right: 12px;
 }
 
 .menu-item:hover {
-    transform: translate(-7px);
-
+    transform: translateX(7px);
+    background: #212121;
 }
 
-.menu-item.active{
+.menu-item.active {
     background: #2F190A;
     color: #FF6B00;
 }
 
-.menu-item.a:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
-.menu-item.b:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
-.menu-item.c:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
 .icone-menu {
-    padding-right: 10px;
-    margin-bottom: 8px;
-}
-
-.icone-estoque {
-    padding-right: 10px;
-    fill: #000000;
-}
-
-.menu-item.d:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
-.menu-item.e:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
-.menu-item.f:hover{
-    background: #212121;
-    transition: 0.50s;
-}
-
-
-.menu-item i{
-    margin-right: 12px;
-    font-size: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 .support-btn {
@@ -113,6 +99,9 @@ body {
     font-weight: 500;
 }
 
+/* ==========================================================================
+   3. MAIN CONTENT AREA & TOPBAR
+   ========================================================================== */
 .main {
     margin-left: 260px;
     height: 100vh;
@@ -122,7 +111,7 @@ body {
 
 .topbar {
     height: 90px;
-    background: linear-gradient(135deg, #FF6B00,#FF8C42);
+    background: linear-gradient(135deg, #FF6B00, #FF8C42);
     padding: 0 40px;
     display: flex;
     align-items: center;
@@ -134,23 +123,24 @@ body {
     background: #111827;
     padding: 12px 18px;
     border-radius: 16px;
+    min-width: 140px;
+    text-align: center;
 }
 
 .user-box small {
     color: #CBD5E1;
 }
 
-.content {
-    flex: 1;
-}
-
+/* ==========================================================================
+   4. VITRINE DE VENDAS (PRODUTOS)
+   ========================================================================== */
 .products-area {
     padding: 30px;
     overflow-y: auto;
     height: calc(100vh - 90px);
 }
 
-.search-input{
+.search-input {
     height: 58px;
     border-radius: 18px;
     border: none;
@@ -159,24 +149,14 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
 
-.filter-btn{
-    border: hidden;
-    height: 58px;
-    border: nome;
-    border-radius: 18px;
-    background: white;
-    font-weight: 600;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-}
-
-.category-btn{
+.category-btn {
     width: 100%;
     height: 50px;
     border: none;
     border-radius: 18px;
     background: #ffffff;
     font-weight: 600;
-    transition: .3s;
+    transition: 0.3s;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
@@ -184,167 +164,144 @@ body {
     background: #E5E7EB;
 }
 
-.product-card {
+.category-btn.active {
+    background: #FF6B00;
+    color: white;
+}
 
+.product-card {
     background: white;
     border-radius: 24px;
     padding: 24px;
     height: 100%;
-    transition: .3s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .product-card:hover {
-    transform: translate(-4px);
-}
-
-.product-card img{
-    max-width: 100px;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .imagem {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 120px;
 }
 
 .imagem img {
+    max-width: 100%;
+    max-height: 110px;
+    object-fit: contain;
     border-radius: 8px;
 }
 
-/* botoes de pagamento */
-
-.fundo {
-    margin-top: auto;
-    margin-bottom: 20px;
-    border-radius: 12px;
-    border: 1px solid #E5E7EB;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    background: #ffffff;
-
-}
-
-.pay-card > button {
-    border-radius: 12px;
-    padding: 15px  10px;
-    margin-bottom: 10px;
-    border: hidden;
-    font-size: 25px;
-    font-weight: 700;
-    text-align: center;
-}
-
-.pay-card > button:hover {
-    opacity: 0.9;
-}
-
-.btn-cancel {
-    background: #FF0000;
-    padding: 12px;
-    border-radius: 12px;
-    border: hidden;
-    font-weight: 600;
-    font-size: 16px;
-
-}
-
-.btn-cancel:hover {
-    background: #CC0000;
-}
-
-
-
-/* =============== */
-
 .product-title {
     text-align: center;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     margin-top: 15px;
 }
 
-.product-description{
+.product-description {
     color: #6B7280;
     margin-top: 8px;
-    min-height: 60px;
+    font-size: 14px;
+    min-height: 45px;
+    text-align: center;
 }
 
-.price{
+.price {
     color: #FF6B00;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
 }
 
-.add-btn{
-    width: 50px;
-    height: 50px;
+.add-btn {
+    width: 45px;
+    height: 45px;
     border: none;
     border-radius: 14px;
     background: #FF6B00;
     color: white;
     font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
 }
 
-.order-area{
+.add-btn:hover {
+    background: #E56106;
+}
+
+/* ==========================================================================
+   5. ÁREA DE FECHAMENTO DO PEDIDO (CARRINHO LATERAL)
+   ========================================================================== */
+.order-area {
     background: white;
     height: calc(100vh - 90px);
     padding: 24px;
     border-left: 1px solid #E5E7EB;
-
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
 #pedidoAtual {
-    max-height: calc(100vh - 330px);
+    max-height: calc(100vh - 360px);
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 5px;
 }
 
-#pedidoAtual .order-item:last-child {
-    margin-bottom: 0;
-}
-
-#estoqueList {
-    max-height: calc(100vh - 220px);
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-#pedidosList {
-    max-height: calc(100vh - 260px);
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-#estoqueList img {
-    object-fit: contain;
-    max-height: 70px;
-    width: auto;
-}
-
-#estoqueList .p-3 {
-    min-height: 120px;
-}
-
-.payment-method-btn {
-    border-radius: 14px;
-    padding: 10px 18px;
-    min-width: 140px;
-    max-width: 180px;
-    font-weight: 700;
-    display: inline-flex;
+.order-item {
+    background: #F7F9FB;
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    justify-content: space-between;
 }
 
-.payment-method-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
-    opacity: 0.94;
+.qty-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    background: white;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.qty-btn:hover {
+    background: #F3F4F6;
+}
+
+.clear-btn {
+    background: #E5E7EB;
+    color: #4B5563;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+}
+
+.clear-btn:hover {
+    background: #D1D5DB;
+    color: #1F2937;
+}
+
+.fundo {
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    padding: 20px;
+    background: #ffffff;
 }
 
 #finalizarPedido {
@@ -355,73 +312,56 @@ body {
     border: none;
     color: white;
     cursor: pointer;
-    box-shadow: 0 12px 24px rgba(253, 91, 7, 0.28);
+    box-shadow: 0 8px 20px rgba(253, 91, 7, 0.25);
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 #finalizarPedido:hover {
     opacity: 0.95;
     transform: translateY(-2px);
-    box-shadow: 0 14px 26px rgba(253, 91, 7, 0.32);
+    box-shadow: 0 12px 24px rgba(253, 91, 7, 0.35);
 }
 
-#estoqueList {
-    max-height: calc(100vh - 220px);
+/* ==========================================================================
+   6. MÓDULOS GERENCIAIS (TABELAS, HISTÓRICO E CADASTROS)
+   ========================================================================== */
+#estoqueList, 
+#pedidosList {
+    max-height: calc(100vh - 280px);
     overflow-y: auto;
 }
 
-#estoqueList img {
-    object-fit: contain;
-    max-height: 70px;
-}
-
-.order-item {
-    background: #f7f9fb;
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.order-item img {
-    width: 70px;
-}
-
-.qty-btn{
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: 10px;
-    background: white;
-}
-
-.clear-btn{
-    background: #FF6B00;
-    color: white;
+/* Customização dos inputs de formulários globais do app */
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid #D1D5DB;
     padding: 10px 16px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #FF6B00;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+}
+
+/* Configuração customizada dos botões de pagamento SPA */
+.payment-method-btn {
     border-radius: 14px;
-    font-weight: 600;
-}
-.clear-btn:hover{
-    background: #E56106;
-    color: white;
+    padding: 12px 24px;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.payment-method-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   7. RESPONSIVIDADE (MEDIA QUERIES)
+   ========================================================================== */
 @media (max-width: 1024px) {
-    .main {
-        margin-left: 0;
-        height: auto;
-        overflow-x: hidden;
-    }
-    .products-area {
-        height: auto;
-        padding: 20px;
-    }
-
-    .order-area {
-        height: auto;
-        border-left: none;
-        border-top: 1px solid #E5E7EB;
-        padding: 20px;
+    body {
+        overflow: auto;
     }
 
     .sidebar {
@@ -435,7 +375,7 @@ body {
 
     .sidebar .logo {
         margin-bottom: 0 !important;
-        width: 60px;
+        width: 65px;
     }
 
     .sidebar .menu {
@@ -444,6 +384,7 @@ body {
         gap: 10px;
         overflow-x: auto;
         padding-bottom: 5px;
+        width: 100%;
     }
 
     .menu-item {
@@ -454,9 +395,30 @@ body {
         padding: 0 15px;
     }
 
-    .topbar {
-        padding: 0 20px;
+    .main {
+        margin-left: 0;
         height: auto;
-        padding-top: 15px;
+    }
+
+    .topbar {
+        padding: 15px 20px;
+        height: auto;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .content {
+        height: auto;
+    }
+
+    .products-area, .order-area {
+        height: auto;
+        border-left: none;
+        padding: 20px;
+    }
+    
+    .order-area {
+        border-top: 1px solid #E5E7EB;
     }
 }
