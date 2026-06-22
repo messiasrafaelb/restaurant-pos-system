@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const errorHandler = require('./middlewares/error-handler');
+const { authMiddleware } = require('./middlewares/auth-middleware');
 
 const app = express();
 
@@ -21,6 +22,7 @@ console.log('APP.JS loaded at', __dirname);
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+const authRoutes = require("./routes/auth-route");
 const userRoutes = require("./routes/user-route");
 const productRoutes = require("./routes/product-route");
 const paymentMethodRoutes = require("./routes/payment-method-route");
@@ -32,17 +34,20 @@ const saleRoutes = require("./routes/sale-route");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.get('/', (req, res) => res.render('cadastro'));
 app.get('/cadastro', (req, res) => res.render('cadastro'));
-app.get(['/index', '/index.html'], (req, res) => res.render('index'));
-
-app.get('/entrar', (req, res) => {
-	console.log('HANDLER: GET /entrar -> render index');
-	res.render('index');
-});
+app.use('/auth', authRoutes);
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get(['/index', '/index.html'], (req, res, next) => {
+  authMiddleware(req, res, (err) => {
+    if (err) {
+      return res.redirect('/cadastro');
+    }
+    return res.render('index');
+  });
+});
 
 app.use("/luizao/products", productRoutes);
 app.use("/luizao/payment-methods", paymentMethodRoutes);

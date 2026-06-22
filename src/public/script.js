@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productDescriptionInput = document.getElementById('productDescription');
     const productImagePathInput = document.getElementById('productImagePath');
     const itemList = document.getElementById('itemList');
+    const userNameLabel = document.getElementById('userNameLabel');
+    const userRoleLabel = document.getElementById('userRoleLabel');
 
     let carrinho = [];
     let currentCategory = 'lanche';
@@ -34,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let productCards = [];
     let items = [];
     let defaultUserId = 1;
+    let currentUser = null;
     const itemCategoryMap = {};
 
     const showScreen = (screenId) => {
@@ -206,41 +209,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    const getDefaultUserId = async () => {
+    const fetchCurrentUser = async () => {
         try {
-            const response = await fetch(`${apiBase}/users`);
+            const response = await fetch('/auth/me');
             if (!response.ok) {
-                const message = await handleApiError(response);
-                throw new Error(message);
+                throw new Error('Usuário não autenticado');
             }
 
-            const users = await response.json();
-            if (Array.isArray(users) && users.length > 0) {
-                return users[0].id;
-            }
+            currentUser = await response.json();
+            if (userNameLabel) userNameLabel.textContent = currentUser.name || 'Caixa';
+            if (userRoleLabel) userRoleLabel.textContent = currentUser.role || 'Não definido';
+            defaultUserId = currentUser.id || defaultUserId;
 
-            const createResponse = await fetch(`${apiBase}/users`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: 'PDV Usuário',
-                    email: 'pdv@luizao.local',
-                    password: 'pdv123',
-                    role: 'USER',
-                    status: 'ATIVO'
-                })
+            menuButtons.forEach(button => {
+                const roles = button.dataset.roles;
+                if (!roles) return;
+                const allowedRoles = roles.split(',').map(item => item.trim().toUpperCase());
+                const userRole = (currentUser.role || '').toUpperCase();
+                const isAllowed = allowedRoles.includes(userRole);
+                button.style.display = isAllowed ? '' : 'none';
             });
 
-            if (!createResponse.ok) {
-                const message = await handleApiError(createResponse);
-                throw new Error(message);
+            const activeButton = Array.from(menuButtons).find(button => button.style.display !== 'none' && button.classList.contains('active'));
+            if (!activeButton) {
+                const firstVisible = Array.from(menuButtons).find(button => button.style.display !== 'none');
+                if (firstVisible) {
+                    firstVisible.classList.add('active');
+                    const screenId = firstVisible.getAttribute('data-tela');
+                    showScreen(screenId);
+                }
             }
-
-            const createdUser = await createResponse.json();
-            return createdUser.id;
         } catch (error) {
-            console.error('Erro ao obter usuário padrão:', error.message);
-            return 1;
+            console.error('Erro ao obter usuário autenticado:', error.message);
+            window.location.href = '/cadastro';
         }
     };
 
@@ -569,7 +570,7 @@ const ingredientes = [
         }
     };
 
-    defaultUserId = await getDefaultUserId();
+    await fetchCurrentUser();
     await loadItems();
     await loadSales();
     applyFilters();

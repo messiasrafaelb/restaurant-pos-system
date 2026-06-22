@@ -24,8 +24,29 @@ async function save(user) {
     return result.rows[0];
 }
 
+async function findByEmail(email) {
+    const query = `SELECT * FROM USERS WHERE EMAIL = $1`;
+    const result = await pool.query(query, [email]);
+    return result.rows[0];
+}
+
+async function updatePassword(userId, hashedPassword) {
+    const query = `UPDATE USERS SET PASSWORD = $1 WHERE ID = $2 RETURNING *`;
+    const result = await pool.query(query, [hashedPassword, userId]);
+    return result.rows[0];
+}
+
+async function countUsers() {
+    const query = `SELECT COUNT(*)::int AS count FROM USERS`;
+    const result = await pool.query(query);
+    return result.rows[0]?.count ?? 0;
+}
+
 module.exports = {
     findAll,
     findById,
     save,
+    findByEmail,
+    updatePassword,
+    countUsers
 };

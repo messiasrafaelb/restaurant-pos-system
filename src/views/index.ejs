@@ -22,27 +22,27 @@
             </div>
 
             <div class="menu">
-                <button class="menu-item a active" data-tela="tela-venda">
+                <button class="menu-item a active" data-tela="tela-venda" data-roles="ADMIN,ATTENDANT">
                     <i class="bi bi-cart-fill"></i>
                     Venda
                 </button>
 
-                <button class="menu-item b" data-tela="tela-pedidos">
+                <button class="menu-item b" data-tela="tela-pedidos" data-roles="ADMIN,ATTENDANT">
                     <i class="bi bi-receipt"></i>
                     Pedidos
                 </button>
 
-                <button class="menu-item e" data-tela="tela-relatorios">
+                <button class="menu-item e" data-tela="tela-relatorios" data-roles="ADMIN">
                     <i class="bi bi-bar-chart"></i>
                     Relatórios
                 </button>
 
-                <button class="menu-item c" data-tela="tela-produtos">
+                <button class="menu-item c" data-tela="tela-produtos" data-roles="ADMIN">
                     <i class="bi bi-box2-heart"></i>
                     Produtos
                 </button>
 
-                <button class="menu-item d" data-tela="tela-estoque">
+                <button class="menu-item d" data-tela="tela-estoque" data-roles="ADMIN">
                     <i class="bi bi-box-seam"></i>
                     Estoque
                 </button>
@@ -66,8 +66,8 @@
                 </span>
 
                 <div class="user-box w-100">
-                    <div class="fw-bold">Caixa 01</div>
-                    <small>Administrador</small>
+                    <div class="fw-bold" id="userNameLabel">Caixa 01</div>
+                    <small id="userRoleLabel">Administrador</small>
                 </div>
             </div>
         </div>
