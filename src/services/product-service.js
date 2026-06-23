@@ -40,10 +40,21 @@ async function softDelete(id) {
   return ProductDTO.fromModel(data);
 }
 
+async function findByNameOrThrow(name) {
+    const data = await productRepository.findByName(name);
+    if (!data) {
+        const err = new Error(MSG_PRODUCT_NOT_FOUND);
+        err.status = 404;
+        throw err;
+    }
+    return ProductDTO.fromModel(data);
+}
+
 module.exports = {
   save,
   findAll,
   findByIdOrThrow,
+  findByNameOrThrow,
   updateStatus,
   softDelete
 };

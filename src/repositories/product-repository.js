@@ -41,9 +41,19 @@ async function updateStatus(id, status) {
     return data.rows[0] ? Product.from(data.rows[0]) : null;
 }
 
+async function findByName(name) {
+    const query = "SELECT * FROM PRODUCT WHERE NAME ILIKE $1"; 
+    const values = [name];
+
+    const data = await pool.query(query, values);
+
+    return data.rows[0] ? Product.from(data.rows[0]) : null;
+}
+
 module.exports = {
     save,
     findAll,
     findById,
-    updateStatus
+    updateStatus,
+    findByName
 }

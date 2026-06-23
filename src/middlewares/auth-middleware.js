@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'luizao-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
