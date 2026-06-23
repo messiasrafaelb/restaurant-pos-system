@@ -7,8 +7,6 @@ function toResponse(paymentMethod) {
     id: paymentMethod.id,
     code: paymentMethod.code,
     name: paymentMethod.name,
-    status: paymentMethod.status,
-    createdAt: formatDate(paymentMethod.created_at ?? paymentMethod.createdAt)
   };
 }
 

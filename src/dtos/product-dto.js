@@ -8,8 +8,6 @@ function toResponse(product) {
     name: product.name,
     price: product.price ? parseFloat(product.price) : 0.0,
     unitMeasure: product.unit_measure ?? product.unitMeasure,
-    status: product.status,
-    createdAt: formatDate(product.created_at ?? product.createdAt)
   };
 }
 

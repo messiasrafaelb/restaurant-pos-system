@@ -12,8 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const paymentMethodRoutes = require("./routes/payment-method-route");
+const customerRoutes = require("./routes/customer-route");
 const productRoutes = require("./routes/product-route");
-const orderRoutes = require("./routes/order-route");
 const userRoutes = require("./routes/user-route");
 const saleRoutes = require("./routes/sale-route");
 const authRoutes = require("./routes/auth-route");
@@ -28,8 +28,8 @@ app.get('/login', (req, res) => {
 });
 
 app.use("/luizao/payment-methods", paymentMethodRoutes);
+app.use("/luizao/customers", customerRoutes);
 app.use("/luizao/products", productRoutes);
-app.use("/luizao/orders", orderRoutes);
 app.use("/luizao/users", userRoutes);
 app.use("/luizao/sales", saleRoutes);
 app.use("/luizao/auth", authRoutes);

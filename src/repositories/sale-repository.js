@@ -16,8 +16,8 @@ async function findById(id) {
 
 async function save(sale) {
   const query = `
-    INSERT INTO SALE (AMOUNT, DISCOUNT, STATUS, FK_ORDER, FK_USER, FK_PAYMENT_METHOD) 
-    VALUES ($1, $2, $3, $4, $5, $6) 
+    INSERT INTO SALE (AMOUNT, FK_USER, FK_PAYMENT_METHOD) 
+    VALUES ($1, $2, $3) 
     RETURNING *
   `;
   const values = saleModel.toPoolParams(sale);
