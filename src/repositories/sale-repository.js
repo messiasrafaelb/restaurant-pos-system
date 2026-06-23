@@ -1,46 +1,38 @@
-const pool = require('../config/db');
-const SaleFilter = require('./filters/sale-filter');
-const { Sale } = require('../models/sale-model');
-
-async function save(request) {
-    const query = 'INSERT INTO sale(amount, discount, status, created_at, fk_order, fk_user) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
-    const values = Sale.toDbParams(request);
-    const data = await pool.query(query, values);
-    return data.rows[0] ? Sale.from(data.rows[0]) : null;
-}
+const pool = require("../config/db");
+const saleFilter = require("./filters/sale-filter");
+const saleModel = require("../models/sale-model");
 
 async function findAll(filters = {}) {
-    const { query, values } = SaleFilter.build(filters);
-    const data = await pool.query(query, values);
-    return data.rows.map(Sale.from);
+  const { query, values } = saleFilter.build(filters);
+  const result = await pool.query(query, values);
+  return result.rows;
 }
 
 async function findById(id) {
-    const query = 'SELECT * FROM sale WHERE id = $1';
-    const values = [id];
-    const data = await pool.query(query, values);
-    return data.rows[0] ? Sale.from(data.rows[0]) : null;
+  const query = `SELECT * FROM SALE WHERE ID = $1`;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
 }
 
-async function updateStatus(id, status) {
-    const query = 'UPDATE sale SET status = $1 WHERE id = $2 RETURNING *';
-    const values = [status, id];
-    const data = await pool.query(query, values);
-    return data.rows[0] ? Sale.from(data.rows[0]) : null;
+async function save(sale) {
+  const query = `
+    INSERT INTO SALE (AMOUNT, DISCOUNT, STATUS, FK_ORDER, FK_USER, FK_PAYMENT_METHOD) 
+    VALUES ($1, $2, $3, $4, $5, $6) 
+    RETURNING *
+  `;
+  const values = saleModel.toPoolParams(sale);
+  const result = await pool.query(query, values);
+  return result.rows[0];
 }
 
-async function saveWithClient(request, client) {
-    const query = 'INSERT INTO sale(amount, discount, status, created_at, fk_order, fk_user) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
-    const values = Sale.toDbParams(request);
-    const data = await client.query(query, values);
-    return data.rows[0] ? Sale.from(data.rows[0]) : null;
+async function saveSaleProduct(fkSale, fkProduct, quantity, price) {
+  const query = `
+    INSERT INTO SALE_PRODUCT (FK_SALE, FK_PRODUCT, QUANTITY, PRICE)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+  `;
+  const result = await pool.query(query, [fkSale, fkProduct, quantity, price]);
+  return result.rows[0];
 }
 
-module.exports = {
-    save,
-    saveWithClient,
-    findAll,
-    findById,
-    updateStatus
-}
-
+module.exports = { findAll, findById, save, saveSaleProduct };

@@ -1,36 +1,16 @@
-function formatDate(value) {
-  if (value == null) {
-    return null;
-  }
+const formatDate = (value) => value ? new Date(value).toISOString() : null;
 
-  return new Date(value).toISOString();
+function toResponse(product) {
+  if (!product) return null;
+
+  return {
+    id: product.id,
+    name: product.name,
+    price: product.price ? parseFloat(product.price) : 0.0,
+    unitMeasure: product.unit_measure ?? product.unitMeasure,
+    status: product.status,
+    createdAt: formatDate(product.created_at ?? product.createdAt)
+  };
 }
 
-class ProductDTO {
-  static fromModel(product) {
-    if (!product) {
-      return null;
-    }
-
-    return {
-      id: product.id,
-      name: product.name,
-      status: product.status,
-      minimumStock: product.minimum_stock ?? product.minimumStock,
-      quantityStock: product.quantity_stock ?? product.quantityStock,
-      createdAt: formatDate(product.created_at ?? product.createdAt)
-    };
-  }
-
-  static toEntity(payload) {
-    return {
-      name: payload.name,
-      status: payload.status ?? 'ATIVO',
-      minimum_stock: payload.minimumStock ?? payload.minimum_stock,
-      quantity_stock: payload.quantityStock ?? payload.quantity_stock,
-      created_at: payload.createdAt ? new Date(payload.createdAt) : new Date()
-    };
-  }
-}
-
-module.exports = ProductDTO;
+module.exports = { toResponse };

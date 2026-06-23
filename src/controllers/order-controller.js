@@ -1,69 +1,38 @@
-const orderService = require('../services/order-service');
-const OrderFilter = require('../repositories/filters/order-filter');
-const { OrderDTO } = require('../dtos/order-dto');
+const service = require("../services/order-service");
+const orderFilter = require('../repositories/filters/order-filter');
+const AppError = require('../errors/app-error');
 
-async function save(req, res, next) {
+async function findAll(req, res, next) {
   try {
-    const entity = OrderDTO.toEntity({
-      ...req.body,
-      // auto-generate code when not provided by client
-      code: req.body.code || `PED-${Date.now()}`,
-      // inject the authenticated user as owner of the sale
-      fkUser: req.user?.id ?? null
-    });
-
-    const response = await orderService.save(entity);
-    return res.status(201).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    const filters = orderFilter.parseQuery(req.query);
+    const orders = await service.findAll(filters);
+    return res.render("orders-list", { orders, filters });
+  } catch (error) {
+    return next(error);
   }
 }
 
 async function findById(req, res, next) {
   try {
-    const { id } = req.params;
-    const response = await orderService.findByIdOrThrow(id);
-    return res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    const id = req.params.id;
+    const order = await service.findByIdOrThrow(id);
+    return res.render("order-detail", { order });
+  } catch (error) {
+    return next(error);
   }
 }
 
-async function findAll(req, res, next) {
+async function save(req, res, next) {
   try {
-    const filters = OrderFilter.parseQuery(req.query);
-    const response = await orderService.findAll(filters);
-    return res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
-  }
-}
-
-async function updateStatus(req, res, next) {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (!status) {
-      const err = new Error('Status é obrigatório para atualização');
-      err.status = 400;
-      throw err;
+    const { code } = req.body;
+    if (!code) {
+      throw new AppError('O código identificador do pedido é obrigatório.', 400);
     }
-
-    const response = await orderService.updateStatus(id, status);
-    return res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    await service.save(req.body);
+    return res.redirect("/luizao/orders");
+  } catch (error) {
+    return next(error);
   }
 }
 
-module.exports = {
-  save,
-  findAll,
-  findById,
-  updateStatus
-};
+module.exports = { findAll, findById, save };

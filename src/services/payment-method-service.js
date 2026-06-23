@@ -1,33 +1,23 @@
-const repository = require("../repositories/payment-method-repository");
-const { PaymentMethodDTO } = require('../dtos');
+const repository = require('../repositories/payment-method-repository');
+const paymentMethodDto = require('../dtos/payment-method-dto');
+const AppError = require('../errors/app-error');
 
-const MSG_PAYMENT_METHOD_NOT_FOUND = "Método de pagamento não encontrado.";
+const MSG_NOT_FOUND = "Forma de pagamento não encontrada.";
 
-async function findAll(filters) {
-    const paymentMethods = await repository.findAll(filters);
-    return paymentMethods.map(PaymentMethodDTO.fromModel);
+async function findAll() {
+  const items = await repository.findAll();
+  return items.map(paymentMethodDto.toResponse);
 }
 
 async function findByIdOrThrow(id) {
-    const paymentMethod = await repository.findById(id);
-
-    if (paymentMethod == null) {
-        const err = new Error(MSG_PAYMENT_METHOD_NOT_FOUND);
-        err.status = 404;
-        throw err;
-    }
-
-    return PaymentMethodDTO.fromModel(paymentMethod);
-}
-
-async function inactivate(id) {
-    await findByIdOrThrow(id);
-    const updated = await repository.inactivate(id);
-    return PaymentMethodDTO.fromModel(updated);
+  const item = await repository.findById(id);
+  if (!item) {
+    throw new AppError(MSG_NOT_FOUND, 404);
+  }
+  return paymentMethodDto.toResponse(item);
 }
 
 module.exports = {
-    findAll,
-    findByIdOrThrow,
-    inactivate
+  findAll,
+  findByIdOrThrow
 };

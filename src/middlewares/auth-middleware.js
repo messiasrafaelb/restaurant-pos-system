@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
+const AppError = require('../errors/app-error');
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_fallback';
 
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token de autenticação ausente' });
+    return next(new AppError('Token de autenticação ausente', 401));
   }
 
   const token = authHeader.slice(7);
@@ -13,17 +14,17 @@ function requireAuth(req, res, next) {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch {
-    return res.status(401).json({ message: 'Token inválido ou expirado' });
+    return next(new AppError('Token inválido ou expirado', 401));
   }
 }
 
 function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Não autenticado' });
+      return next(new AppError('Não autenticado', 401));
     }
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Sem permissão para esta operação' });
+      return next(new AppError('Sem permissão para esta operação', 403));
     }
     next();
   };

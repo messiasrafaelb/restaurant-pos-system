@@ -1,25 +1,15 @@
-function formatDate(value) {
-  if (value == null) {
-    return null;
-  }
+const formatDate = (value) => value ? new Date(value).toISOString() : null;
 
-  return new Date(value).toISOString();
+function toResponse(paymentMethod) {
+  if (!paymentMethod) return null;
+
+  return {
+    id: paymentMethod.id,
+    code: paymentMethod.code,
+    name: paymentMethod.name,
+    status: paymentMethod.status,
+    createdAt: formatDate(paymentMethod.created_at ?? paymentMethod.createdAt)
+  };
 }
 
-class PaymentMethodDTO {
-  static fromModel(paymentMethod) {
-    if (!paymentMethod) {
-      return null;
-    }
-
-    return {
-      id: paymentMethod.id,
-      code: paymentMethod.code,
-      name: paymentMethod.name,
-      status: paymentMethod.status,
-      createdAt: formatDate(paymentMethod.created_at ?? paymentMethod.createdAt)
-    };
-  }
-}
-
-module.exports = PaymentMethodDTO;
+module.exports = { toResponse };

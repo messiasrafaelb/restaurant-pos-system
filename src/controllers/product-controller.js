@@ -1,72 +1,38 @@
-const productService = require('../services/product-service');
-const ProductFilter = require('../repositories/filters/product-filter');
-const { ProductDTO } = require('../dtos');
+const service = require("../services/product-service");
+const productFilter = require('../repositories/filters/product-filter');
+const AppError = require('../errors/app-error');
 
-async function save(req, res, next) {
+async function findAll(req, res, next) {
   try {
-    if (!req.body || !req.body.name) {
-      const err = new Error('Nome do produto é obrigatório');
-      err.status = 400;
-      throw err;
-    }
-
-    const entity = ProductDTO.toEntity(req.body);
-    const response = await productService.save(entity);
-    res.status(201).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    const filters = productFilter.parseQuery(req.query);
+    const products = await service.findAll(filters);
+    return res.render("products-list", { products, filters });
+  } catch (error) {
+    return next(error);
   }
 }
 
 async function findById(req, res, next) {
   try {
-    const { id } = req.params;
-    const response = await productService.findByIdOrThrow(id);
-    res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    const id = req.params.id;
+    const product = await service.findByIdOrThrow(id);
+    return res.render("product-detail", { product });
+  } catch (error) {
+    return next(error);
   }
 }
 
-async function findAll(req, res, next) {
+async function save(req, res, next) {
   try {
-    const filters = ProductFilter.parseQuery(req.query);
-    const response = await productService.findAll(filters);
-    res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
+    const { name, price } = req.body;
+    if (!name || !price) {
+      throw new AppError('Nome e Preço do produto são obrigatórios.', 400);
+    }
+    await service.save(req.body);
+    return res.redirect("/luizao/products");
+  } catch (error) {
+    return next(error);
   }
 }
 
-async function updateStatus(req, res, next) {
-  try {
-    const { id } = req.params;
-    const response = await productService.updateStatus(id);
-    res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
-  }
-}
-
-async function softDelete(req, res, next) {
-  try {
-    const { id } = req.params;
-    const response = await productService.softDelete(id);
-    res.status(200).json(response);
-  } catch (err) {
-    console.error(err.message);
-    return next(err);
-  }
-}
-
-module.exports = {
-  save,
-  findAll,
-  findById,
-  updateStatus,
-  softDelete
-};
+module.exports = { findAll, findById, save };

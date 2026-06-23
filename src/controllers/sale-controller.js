@@ -1,71 +1,38 @@
-const saleService = require('../services/sale-service');
-const SaleFilter = require('../repositories/filters/sale-filter');
+const service = require("../services/sale-service");
+const saleFilter = require('../repositories/filters/sale-filter');
+const AppError = require('../errors/app-error');
 
-async function save(req, res, next) {
-	try {
-		if (!req.body || req.body.amount == null) {
-			const err = new Error('Valor (amount) é obrigatório');
-			err.status = 400;
-			throw err;
-		}
-
-		const entity = require('../dtos').SaleDTO.toEntity(req.body);
-		const response = await saleService.save(entity);
-
-		return res.status(201).json(response);
-	} catch (err) {
-		console.error(err.message);
-		return next(err);
-	}
+async function findAll(req, res, next) {
+  try {
+    const filters = saleFilter.parseQuery(req.query);
+    const sales = await service.findAll(filters);
+    return res.render("sales-list", { sales, filters });
+  } catch (error) {
+    return next(error);
+  }
 }
 
 async function findById(req, res, next) {
-	try {
-		const { id } = req.params;
-		const response = await saleService.findByIdOrThrow(id);
-
-		return res.status(200).json(response);
-	} catch (err) {
-		console.error(err.message);
-		return next(err);
-	}
+  try {
+    const id = req.params.id;
+    const sale = await service.findByIdOrThrow(id);
+    return res.render("sale-detail", { sale });
+  } catch (error) {
+    return next(error);
+  }
 }
 
-async function findAll(req, res, next) {
-	try {
-		const filters = SaleFilter.parseQuery(req.query);
-		const response = await saleService.findAll(filters);
-
-		return res.status(200).json(response);
-	} catch (err) {
-		console.error(err.message);
-		return next(err);
-	}
+async function save(req, res, next) {
+  try {
+    const { amount, fkOrder, fkUser } = req.body;
+    if (!amount || !fkOrder || !fkUser) {
+      throw new AppError('Valor total, Pedido e Usuário são obrigatórios.', 400);
+    }
+    await service.save(req.body);
+    return res.redirect("/luizao/sales");
+  } catch (error) {
+    return next(error);
+  }
 }
 
-async function updateStatus(req, res, next) {
-	try {
-		const { id } = req.params;
-		const { status } = req.body;
-
-		if (!status) {
-			const err = new Error('Status é obrigatório para atualização');
-			err.status = 400;
-			throw err;
-		}
-
-		const response = await saleService.updateStatus(id, status);
-
-		return res.status(200).json(response);
-	} catch (err) {
-		console.error(err.message);
-		return next(err);
-	}
-}
-
-module.exports = {
-	save,
-	findAll,
-	findById,
-	updateStatus
-};
+module.exports = { findAll, findById, save };

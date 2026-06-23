@@ -4,9 +4,8 @@ const { requireAuth, requireRole } = require('../middlewares/auth-middleware');
 
 const router = express.Router();
 
-router.post("/login", controller.login);
-router.post("/register", controller.save);
 router.get("/", requireAuth, requireRole('ADMIN'), controller.findAll);
-router.get("/:id", requireAuth, controller.findById);
+router.get("/:id", requireAuth, requireRole('ADMIN'), controller.findById);
+router.post("/", requireAuth, requireRole('ADMIN'), controller.save);
 
 module.exports = router;

@@ -1,38 +1,38 @@
-const saleRepository = require('../repositories/sale-repository');
-const { Sale } = require('../models/sale-model');
-const { SaleDTO } = require('../dtos/sale-dto');
+const repository = require('../repositories/sale-repository');
+const saleModel = require('../models/sale-model');
+const saleDto = require('../dtos/sale-dto');
+const AppError = require('../errors/app-error');
 
-const MSG_SALE_NOT_FOUND = 'Sale não encontrada';
-
-async function save(request) {
-  const entity = Sale.from(request);
-  const saved = await saleRepository.save(entity);
-  return SaleDTO.fromModel(saved);
-}
+const MSG_NOT_FOUND = "Venda não encontrada.";
 
 async function findAll(filters = {}) {
-  const sales = await saleRepository.findAll ? await saleRepository.findAll(filters) : [];
-  return sales.map(SaleDTO.fromModel);
+  const items = await repository.findAll(filters);
+  return items.map(saleDto.toResponse);
 }
 
 async function findByIdOrThrow(id) {
-  const data = await saleRepository.findById(id);
-  if (!data) {
-    const err = new Error(MSG_SALE_NOT_FOUND);
-    err.status = 404;
-    throw err;
+  const item = await repository.findById(id);
+  if (!item) {
+    throw new AppError(MSG_NOT_FOUND, 404);
   }
-  return SaleDTO.fromModel(data);
+  return saleDto.toResponse(item);
 }
 
-async function updateStatus(id, status) {
-  const updated = await saleRepository.updateStatus(id, status);
-  return SaleDTO.fromModel(updated);
+async function save(request) {
+  const saleEntity = saleModel.toEntity(request);
+  const savedSale = await repository.save(saleEntity);
+
+  if (request.products && Array.isArray(request.products)) {
+    for (const prod of request.products) {
+      await repository.saveSaleProduct(savedSale.id, prod.id, prod.quantity, prod.price);
+    }
+  }
+
+  return saleDto.toResponse(savedSale);
 }
 
 module.exports = {
-  save,
   findAll,
   findByIdOrThrow,
-  updateStatus
+  save
 };
