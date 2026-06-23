@@ -40,8 +40,20 @@ async function updateStatus(id, status) {
     return data.rows[0] ? Installment.from(data.rows[0]) : null;
 }
 
+async function saveWithClient(installment, client) {
+    const values = Installment.toDbParams(installment);
+    const query = `
+        INSERT INTO INSTALLMENT
+        (NUMBER, AMOUNT, DUE_DATE, FK_SALE, FK_PAYMENT_METHOD, STATUS, CREATED_AT)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+    `;
+    const data = await client.query(query, values);
+    return data.rows[0] ? Installment.from(data.rows[0]) : null;
+}
+
 module.exports = {
     save,
+    saveWithClient,
     findAll,
     findById,
     updateStatus

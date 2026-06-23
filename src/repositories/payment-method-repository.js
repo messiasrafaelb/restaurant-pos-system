@@ -23,8 +23,15 @@ async function inactivate(id) {
     return result.rows[0] ? PaymentMethod.from(result.rows[0]) : null;
 }
 
+async function findByCode(code) {
+    const query = `SELECT * FROM PAYMENT_METHOD WHERE CODE = $1 LIMIT 1`;
+    const result = await pool.query(query, [code]);
+    return result.rows[0] ? PaymentMethod.from(result.rows[0]) : null;
+}
+
 module.exports = {
     findAll,
     findById,
+    findByCode,
     inactivate
 }

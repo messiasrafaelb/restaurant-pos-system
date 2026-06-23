@@ -29,8 +29,16 @@ async function updateStatus(id, status) {
     return data.rows[0] ? Sale.from(data.rows[0]) : null;
 }
 
+async function saveWithClient(request, client) {
+    const query = 'INSERT INTO sale(amount, discount, status, created_at, fk_order, fk_user) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+    const values = Sale.toDbParams(request);
+    const data = await client.query(query, values);
+    return data.rows[0] ? Sale.from(data.rows[0]) : null;
+}
+
 module.exports = {
     save,
+    saveWithClient,
     findAll,
     findById,
     updateStatus

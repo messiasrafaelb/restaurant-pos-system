@@ -31,7 +31,13 @@ class OrderDTO {
         itemId: i.itemId ?? i.fk_item ?? i.item_id,
         quantity: i.quantity,
         amount: i.amount
-      }))
+      })),
+      // financial / auth fields forwarded from controller
+      amount: payload.amount ?? null,
+      discount: payload.discount ?? 0,
+      fkUser: payload.fkUser ?? payload.fk_user ?? null,
+      paymentMethodCode: payload.paymentMethodCode ?? payload.payment_method_code ?? null,
+      paymentMethodId: payload.paymentMethodId ?? payload.payment_method_id ?? null
     };
   }
 }

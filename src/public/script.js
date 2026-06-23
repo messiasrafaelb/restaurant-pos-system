@@ -79,46 +79,47 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─── POS (Venda) ──────────────────────────────────────────────────────────────
 
 function initPOS() {
-  const screens = document.querySelectorAll('.item-tela');
-  const menuButtons = document.querySelectorAll('.menu-item[data-tela]');
-  const categoryButtons = document.querySelectorAll('.category-btn');
-  const productCards = Array.from(document.querySelectorAll('.product-card'));
-  const searchInput = document.getElementById('searchInput');
-  const addButtons = document.querySelectorAll('.add-btn');
-  const finalizarButton = document.getElementById('finalizarPedido');
-  const paymentSummary = document.getElementById('paymentSummary');
-  const paymentMessage = document.getElementById('paymentMessage');
-  const paymentMethodButtons = document.querySelectorAll('.payment-method-btn[data-method]');
-  const cardTypeButtons = document.querySelectorAll('.card-type-btn[data-card-type]');
-  const voltarVenda = document.getElementById('voltarVenda');
-  const voltarMetodo = document.getElementById('voltarMetodo');
+  const screens      = document.querySelectorAll('.item-tela');
+  const menuButtons  = document.querySelectorAll('.menu-item[data-tela]');
+  const searchInput  = document.getElementById('searchInput');
+  const categoryBtns = document.querySelectorAll('.category-btn');
+  const finalizarBtn = document.getElementById('finalizarPedido');
+  const paymentSummary    = document.getElementById('paymentSummary');
+  const paymentMessage    = document.getElementById('paymentMessage');
+  const paymentMethodBtns = document.querySelectorAll('.payment-method-btn[data-method]');
+  const cardTypeBtns      = document.querySelectorAll('.card-type-btn[data-card-type]');
+  const voltarVenda    = document.getElementById('voltarVenda');
+  const voltarMetodo   = document.getElementById('voltarMetodo');
   const cancelarPagamento = document.getElementById('cancelarPagamento');
-  const cancelarCartao = document.getElementById('cancelarCartao');
-  const finalizarCartao = document.getElementById('finalizarCartao');
-  const pedidosList = document.getElementById('pedidosList');
+  const cancelarCartao    = document.getElementById('cancelarCartao');
+  const finalizarCartao   = document.getElementById('finalizarCartao');
+  const pedidosList     = document.getElementById('pedidosList');
   const reportsContainer = document.getElementById('reportsContainer');
-  const estoqueList = document.getElementById('estoqueList');
+  const estoqueList     = document.getElementById('estoqueList');
   const pedidoAtual = document.getElementById('pedidoAtual');
-  const subtotal = document.getElementById('subtotal');
+  const subtotalEl  = document.getElementById('subtotal');
   const limparPedido = document.getElementById('limparPedido');
 
-  let carrinho = [];
-  let currentCategory = 'lanche';
-  let orders = [];
-  let pendingPaymentMethod = null;
-  let selectedCardType = null;
+  let carrinho             = [];
+  let paymentMethods       = [];
+  let pendingPaymentCode   = null; // UI label sent to backend (e.g. "Dinheiro")
+  let selectedCardType     = null;
+  let isSubmitting         = false;
+
+  // ── Screen helpers ──────────────────────────────────────────────────────────
 
   const showScreen = (screenId) => {
     screens.forEach(s => s.classList.add('d-none'));
-    const target = document.getElementById(screenId);
-    if (target) target.classList.remove('d-none');
+    document.getElementById(screenId)?.classList.remove('d-none');
   };
 
   const setActiveMenu = (screenId) => {
-    menuButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-tela') === screenId);
-    });
+    menuButtons.forEach(btn =>
+      btn.classList.toggle('active', btn.getAttribute('data-tela') === screenId)
+    );
   };
+
+  // ── Cart rendering ──────────────────────────────────────────────────────────
 
   const renderCarrinho = () => {
     pedidoAtual.innerHTML = '';
@@ -145,117 +146,223 @@ function initPOS() {
         </div>`;
     });
 
-    subtotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    if (subtotalEl) subtotalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     return total;
   };
 
+  // ── Product grid (dynamic from API) ─────────────────────────────────────────
+
   const applyFilters = () => {
-    const searchText = searchInput.value.trim().toLowerCase();
-    productCards.forEach(card => {
-      const category = card.dataset.category || '';
-      const name = card.dataset.nome.toLowerCase();
-      const matchesCategory = currentCategory ? category === currentCategory : true;
-      const matchesSearch = searchText ? name.includes(searchText) : true;
-      card.closest('[class*="col"]').classList.toggle('d-none', !(matchesCategory && matchesSearch));
+    const searchText = searchInput?.value.trim().toLowerCase() || '';
+    document.querySelectorAll('#productsGrid .product-card').forEach(card => {
+      const name = (card.dataset.nome || '').toLowerCase();
+      const visible = !searchText || name.includes(searchText);
+      card.closest('[class*="col"]').classList.toggle('d-none', !visible);
     });
   };
 
-  const updateOrdersView = () => {
-    if (!pedidosList) return;
-    if (orders.length === 0) {
-      pedidosList.innerHTML = '<p class="text-muted m-0">Nenhum pedido concluído ainda.</p>';
-      return;
-    }
-    pedidosList.innerHTML = orders.map(order => `
-      <div class="mb-3 p-3 border rounded-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>
-            <strong>Pedido #${order.id}</strong>
-            <div class="text-muted">${order.date}</div>
-          </div>
-          <span class="badge bg-success">${order.method}</span>
-        </div>
-        <div class="mb-2">Total: <strong>R$ ${order.total.toFixed(2).replace('.', ',')}</strong></div>
-        <div>${order.items.map(i => `<div>${i.quantidade}x ${i.nome}</div>`).join('')}</div>
-      </div>`).join('');
+  const attachCardListeners = () => {
+    document.querySelectorAll('#productsGrid .add-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card   = btn.closest('.product-card');
+        const itemId = Number(card.dataset.itemId);
+        const nome   = card.dataset.nome;
+        const preco  = Number(card.dataset.preco);
+        const img    = card.dataset.img || '/img/logo.png';
+
+        const existing = carrinho.find(i => i.itemId === itemId);
+        if (existing) {
+          existing.quantidade += 1;
+        } else {
+          carrinho.push({ itemId, nome, preco, img, quantidade: 1 });
+        }
+        renderCarrinho();
+      });
+    });
   };
 
-  const updateReportsView = () => {
-    if (!reportsContainer) return;
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-    const totalOrders = orders.length;
-    const itemsSold = orders.reduce((sum, o) => sum + o.items.reduce((c, i) => c + i.quantidade, 0), 0);
-    reportsContainer.innerHTML = `
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="p-3 border rounded-3">
-            <h5>Total de Pedidos</h5>
-            <p class="fs-3 mb-0">${totalOrders}</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded-3">
-            <h5>Receita</h5>
-            <p class="fs-3 mb-0">R$ ${totalRevenue.toFixed(2).replace('.', ',')}</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded-3">
-            <h5>Itens Vendidos</h5>
-            <p class="fs-3 mb-0">${itemsSold}</p>
-          </div>
-        </div>
-      </div>`;
-  };
+  async function loadProductCards() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
 
-  const updateEstoqueView = () => {
-    if (!estoqueList) return;
-    estoqueList.innerHTML = `
-      <div class="row row-cols-1 row-cols-md-2 g-3">
-        ${productCards.map(card => {
-          const imgUrl = card.getAttribute('data-img') || '/img/logo.png';
-          return `
-          <div class="col">
-            <div class="p-3 border rounded-3">
-              <div class="d-flex align-items-center gap-3">
-                <img src="${imgUrl}" alt="${card.dataset.nome}" width="70" style="object-fit:contain;">
-                <div>
-                  <strong>${card.dataset.nome}</strong>
-                  <div class="text-muted">Categoria: ${card.dataset.category}</div>
-                </div>
-              </div>
-              <div class="mt-3">Estoque: <strong>${card.dataset.stock || '0'}</strong></div>
+    try {
+      const res = await apiFetch('/luizao/items?status=ATIVO');
+      if (!res.ok) throw new Error('Falha ao carregar itens');
+      const items = await res.json();
+
+      if (!Array.isArray(items) || items.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-5">Nenhum produto disponível. Cadastre itens no painel de Produtos.</div>';
+        return;
+      }
+
+      grid.innerHTML = items.map(item => `
+        <div class="col-lg-4 col-md-6">
+          <div class="product-card"
+            data-item-id="${item.id}"
+            data-nome="${(item.name || '').replace(/"/g, '&quot;')}"
+            data-preco="${item.price}"
+            data-img="/img/logo.png">
+            <div class="imagem">
+              <img src="/img/logo.png" alt="${item.name}">
             </div>
-          </div>`;
-        }).join('')}
-      </div>`;
+            <div class="product-title">${item.name}</div>
+            <div class="product-description">${item.description || ''}</div>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <div class="price">R$ ${Number(item.price).toFixed(2).replace('.', ',')}</div>
+              <button class="add-btn">+</button>
+            </div>
+          </div>
+        </div>`).join('');
+
+      attachCardListeners();
+      applyFilters();
+    } catch {
+      grid.innerHTML = '<div class="col-12 text-center text-danger py-5">Erro ao carregar produtos. Verifique a conexão.</div>';
+    }
+  }
+
+  // ── Payment methods (from API) ───────────────────────────────────────────────
+
+  async function loadPaymentMethods() {
+    try {
+      const res = await apiFetch('/luizao/payment-methods');
+      if (res.ok) paymentMethods = await res.json();
+    } catch {
+      paymentMethods = [];
+    }
+  }
+
+  // ── Views that fetch real data ────────────────────────────────────────────────
+
+  const updateOrdersView = async () => {
+    if (!pedidosList) return;
+    pedidosList.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Carregando...</div>';
+    try {
+      const res = await apiFetch('/luizao/orders');
+      if (!res.ok) throw new Error();
+      const orders = await res.json();
+
+      if (!Array.isArray(orders) || orders.length === 0) {
+        pedidosList.innerHTML = '<p class="text-muted m-0">Nenhum pedido registrado.</p>';
+        return;
+      }
+
+      pedidosList.innerHTML = orders.map(order => `
+        <div class="mb-3 p-3 border rounded-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <strong>${order.code || 'Pedido #' + order.id}</strong>
+              <div class="text-muted small">${order.createdAt ? new Date(order.createdAt).toLocaleString('pt-BR') : ''}</div>
+            </div>
+            <span class="badge bg-${order.status === 'OPEN' ? 'warning text-dark' : 'success'}">${order.status}</span>
+          </div>
+          ${(order.items || []).length > 0
+            ? order.items.map(i => `<div class="text-muted small">${i.quantity}x ${i.itemName} — R$ ${Number(i.amount || 0).toFixed(2).replace('.', ',')}</div>`).join('')
+            : '<div class="text-muted small">—</div>'
+          }
+        </div>`).join('');
+    } catch {
+      pedidosList.innerHTML = '<p class="text-danger m-0">Erro ao carregar pedidos.</p>';
+    }
   };
+
+  const updateReportsView = async () => {
+    if (!reportsContainer) return;
+    reportsContainer.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Carregando...</div>';
+    try {
+      const [resOrders, resSales] = await Promise.all([
+        apiFetch('/luizao/orders'),
+        apiFetch('/luizao/sales')
+      ]);
+      const orders = resOrders.ok ? await resOrders.json() : [];
+      const sales  = resSales.ok  ? await resSales.json()  : [];
+
+      const totalOrders  = Array.isArray(orders) ? orders.length : 0;
+      const totalRevenue = Array.isArray(sales)
+        ? sales.reduce((sum, s) => sum + Number(s.amount || 0), 0)
+        : 0;
+      const totalItems = Array.isArray(orders)
+        ? orders.reduce((sum, o) => sum + (o.items || []).reduce((c, i) => c + Number(i.quantity || 0), 0), 0)
+        : 0;
+
+      reportsContainer.innerHTML = `
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 text-center">
+              <h5 class="text-muted">Total de Pedidos</h5>
+              <p class="fs-2 fw-bold mb-0">${totalOrders}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 text-center">
+              <h5 class="text-muted">Receita</h5>
+              <p class="fs-2 fw-bold mb-0">R$ ${totalRevenue.toFixed(2).replace('.', ',')}</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 text-center">
+              <h5 class="text-muted">Itens Vendidos</h5>
+              <p class="fs-2 fw-bold mb-0">${totalItems}</p>
+            </div>
+          </div>
+        </div>`;
+    } catch {
+      reportsContainer.innerHTML = '<p class="text-danger m-0">Erro ao carregar relatórios.</p>';
+    }
+  };
+
+  const updateEstoqueView = async () => {
+    if (!estoqueList) return;
+    estoqueList.innerHTML = '<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Carregando...</div>';
+    try {
+      const res = await apiFetch('/luizao/products');
+      if (!res.ok) throw new Error();
+      const products = await res.json();
+
+      if (!Array.isArray(products) || products.length === 0) {
+        estoqueList.innerHTML = '<p class="text-muted m-0">Nenhum ingrediente cadastrado.</p>';
+        return;
+      }
+
+      estoqueList.innerHTML = `
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          ${products.map(p => {
+            const qty     = Number(p.quantityStock ?? 0);
+            const minQty  = Number(p.minimumStock  ?? 0);
+            const baixo   = qty <= minQty;
+            return `
+              <div class="col">
+                <div class="p-3 border rounded-3 ${baixo ? 'border-danger' : ''}">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>${p.name}</strong>
+                      <div class="text-muted small">Mínimo: ${minQty}</div>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-bold fs-5 ${baixo ? 'text-danger' : ''}">${qty}</div>
+                      <small class="text-muted">unidades</small>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <span class="badge ${p.status === 'ATIVO' ? 'bg-success' : 'bg-secondary'}">${p.status}</span>
+                    ${baixo ? '<span class="badge bg-danger ms-1">Estoque baixo</span>' : ''}
+                  </div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    } catch {
+      estoqueList.innerHTML = '<p class="text-danger m-0">Erro ao carregar estoque.</p>';
+    }
+  };
+
+  // ── Cart helpers ──────────────────────────────────────────────────────────────
 
   const clearCart = () => {
-    carrinho = [];
-    pendingPaymentMethod = null;
-    selectedCardType = null;
+    carrinho           = [];
+    pendingPaymentCode = null;
+    selectedCardType   = null;
     renderCarrinho();
-  };
-
-  const completeOrder = (method) => {
-    const total = renderCarrinho();
-    if (carrinho.length === 0) return;
-
-    const order = {
-      id: orders.length + 1,
-      method,
-      total,
-      items: carrinho.map(i => ({ nome: i.nome, quantidade: i.quantidade })),
-      date: new Date().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
-    };
-    orders.unshift(order);
-    clearCart();
-    updateOrdersView();
-    updateReportsView();
-    if (paymentMessage) paymentMessage.textContent = `Pagamento com ${method} confirmado! Pedido #${order.id} registrado.`;
-    showScreen('tela-pedidos');
-    setActiveMenu('tela-pedidos');
   };
 
   const renderPaymentSummary = () => {
@@ -274,16 +381,57 @@ function initPOS() {
     if (paymentMessage) paymentMessage.textContent = '';
   };
 
-  // Menu navigation
+  // ── Complete order → persists ORDER + ORDER_ITEMS + SALE + INSTALLMENT ────────
+
+  const completeOrder = async (paymentCode) => {
+    if (carrinho.length === 0 || isSubmitting) return;
+    isSubmitting = true;
+
+    const total = renderCarrinho();
+
+    const payload = {
+      items: carrinho.map(i => ({
+        itemId:   i.itemId,
+        quantity: i.quantidade,
+        amount:   +(i.preco * i.quantidade).toFixed(2)
+      })),
+      amount:            +total.toFixed(2),
+      paymentMethodCode: paymentCode
+    };
+
+    try {
+      const res  = await apiFetch('/luizao/orders', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (paymentMessage) paymentMessage.textContent = data.message || 'Erro ao registrar pedido.';
+        return;
+      }
+
+      clearCart();
+      if (paymentMessage) paymentMessage.textContent =
+        `Pagamento confirmado! ${data.code || 'Pedido #' + data.id} registrado.`;
+      showScreen('tela-pedidos');
+      setActiveMenu('tela-pedidos');
+      updateOrdersView();
+    } catch {
+      if (paymentMessage) paymentMessage.textContent = 'Erro de conexão ao registrar pedido.';
+    } finally {
+      isSubmitting = false;
+    }
+  };
+
+  // ── Menu navigation ───────────────────────────────────────────────────────────
+
   menuButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       const screenId = e.currentTarget.getAttribute('data-tela');
       if (!screenId) return;
       showScreen(screenId);
       setActiveMenu(screenId);
-      if (screenId === 'tela-pedidos') updateOrdersView();
+      if (screenId === 'tela-pedidos')   updateOrdersView();
       if (screenId === 'tela-relatorios') updateReportsView();
-      if (screenId === 'tela-estoque') updateEstoqueView();
+      if (screenId === 'tela-estoque')   updateEstoqueView();
       if (screenId === 'tela-produtos' && isAdmin()) {
         window.loadItens?.();
         window.loadIngredientes?.();
@@ -291,52 +439,39 @@ function initPOS() {
     });
   });
 
-  // Category filter
-  categoryButtons.forEach(btn => {
+  // Category buttons: reset search and show all cards (no category field in DB)
+  categoryBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      categoryButtons.forEach(b => b.classList.remove('active'));
+      categoryBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      currentCategory = btn.dataset.category || '';
+      if (searchInput) searchInput.value = '';
       applyFilters();
     });
   });
 
   searchInput?.addEventListener('keyup', applyFilters);
 
-  // Add to cart
-  addButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.product-card');
-      const nome = card.dataset.nome;
-      const preco = Number(card.dataset.preco);
-      const img = card.getAttribute('data-img') || '/img/logo.png';
-      const existing = carrinho.find(i => i.nome === nome);
-      if (existing) {
-        existing.quantidade += 1;
-      } else {
-        carrinho.push({ nome, preco, img, quantidade: 1 });
-      }
-      renderCarrinho();
-    });
-  });
+  // ── Finalizar ─────────────────────────────────────────────────────────────────
 
-  // Finalizar
-  finalizarButton?.addEventListener('click', () => {
+  finalizarBtn?.addEventListener('click', () => {
     renderPaymentSummary();
     showScreen('tela-dinheiro');
     setActiveMenu('');
   });
 
-  // Métodos de pagamento
-  paymentMethodButtons.forEach(btn => {
+  // ── Payment method selection ──────────────────────────────────────────────────
+
+  paymentMethodBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const method = btn.dataset.method;
       if (method === 'Cartão') {
-        pendingPaymentMethod = method;
-        selectedCardType = null;
+        pendingPaymentCode = method;
+        selectedCardType   = null;
         if (finalizarCartao) finalizarCartao.disabled = true;
-        cardTypeButtons.forEach(b => b.classList.remove('active', 'btn-primary'));
-        cardTypeButtons.forEach(b => b.classList.add('btn-outline-primary'));
+        cardTypeBtns.forEach(b => {
+          b.classList.remove('active', 'btn-primary');
+          b.classList.add('btn-outline-primary');
+        });
         showScreen('tela-cartao');
         setActiveMenu('');
         return;
@@ -345,11 +480,12 @@ function initPOS() {
     });
   });
 
-  // Seleção de tipo de cartão (não finaliza de imediato)
-  cardTypeButtons.forEach(btn => {
+  // ── Card type selection ───────────────────────────────────────────────────────
+
+  cardTypeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       selectedCardType = btn.dataset.cardType;
-      cardTypeButtons.forEach(b => {
+      cardTypeBtns.forEach(b => {
         b.classList.remove('btn-primary');
         b.classList.add('btn-outline-primary');
       });
@@ -359,24 +495,18 @@ function initPOS() {
     });
   });
 
-  // Finalizar pagamento com cartão
   finalizarCartao?.addEventListener('click', () => {
-    if (!selectedCardType || !pendingPaymentMethod) return;
-    completeOrder(`${pendingPaymentMethod} - ${selectedCardType}`);
-    pendingPaymentMethod = null;
-    selectedCardType = null;
+    if (!selectedCardType) return;
+    completeOrder(`Cartão - ${selectedCardType}`);
+    pendingPaymentCode = null;
+    selectedCardType   = null;
   });
 
-  // Voltar / Cancelar
-  voltarMetodo?.addEventListener('click', () => {
-    showScreen('tela-dinheiro');
-    setActiveMenu('');
-  });
+  // ── Back / Cancel ─────────────────────────────────────────────────────────────
 
-  voltarVenda?.addEventListener('click', () => {
-    showScreen('tela-venda');
-    setActiveMenu('tela-venda');
-  });
+  voltarMetodo?.addEventListener('click', () => { showScreen('tela-dinheiro'); setActiveMenu(''); });
+
+  voltarVenda?.addEventListener('click', () => { showScreen('tela-venda'); setActiveMenu('tela-venda'); });
 
   cancelarPagamento?.addEventListener('click', () => {
     clearCart();
@@ -387,15 +517,15 @@ function initPOS() {
 
   cancelarCartao?.addEventListener('click', () => {
     clearCart();
-    pendingPaymentMethod = null;
-    selectedCardType = null;
+    pendingPaymentCode = null;
+    selectedCardType   = null;
     showScreen('tela-venda');
     setActiveMenu('tela-venda');
   });
 
-  limparPedido?.addEventListener('click', () => {
-    clearCart();
-  });
+  limparPedido?.addEventListener('click', clearCart);
+
+  // ── Global cart qty controls (called from inline onclick) ─────────────────────
 
   window.app = {
     aumentar: (index) => {
@@ -411,7 +541,10 @@ function initPOS() {
     }
   };
 
-  applyFilters();
+  // ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+  loadPaymentMethods();
+  loadProductCards();
 }
 
 // ─── Gestão de Produtos (Admin) ───────────────────────────────────────────────
@@ -419,8 +552,8 @@ function initPOS() {
 function initProdutos() {
   if (!isAdmin()) return;
 
-  let currentItemId = null;
-  let allIngredientes = [];
+  let currentItemId    = null;
+  let allIngredientes  = [];
 
   // ── Itens do Menu ─────────────────────────────────────────────────────────
 
@@ -429,7 +562,7 @@ function initProdutos() {
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Carregando...</td></tr>';
     try {
-      const res = await apiFetch('/luizao/items');
+      const res   = await apiFetch('/luizao/items');
       const itens = await res.json();
       if (!Array.isArray(itens) || itens.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum item cadastrado.</td></tr>';
@@ -442,15 +575,15 @@ function initProdutos() {
           <td>${item.description || '—'}</td>
           <td>R$ ${Number(item.price).toFixed(2).replace('.', ',')}</td>
           <td>
-            <span class="badge ${item.status === 'ATIVO' ? 'bg-success' : 'bg-secondary'}">
-              ${item.status}
-            </span>
+            <span class="badge ${item.status === 'ATIVO' ? 'bg-success' : 'bg-secondary'}">${item.status}</span>
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-info me-1" onclick="window.produtosAdmin.abrirIngredientes(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
+            <button class="btn btn-sm btn-outline-info me-1"
+              onclick="window.produtosAdmin.abrirIngredientes(${item.id}, '${(item.name || '').replace(/'/g, "\\'")}')">
               <i class="bi bi-list-ul"></i> Ingredientes
             </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="window.produtosAdmin.deletarItem(${item.id})">
+            <button class="btn btn-sm btn-outline-danger"
+              onclick="window.produtosAdmin.deletarItem(${item.id})">
               <i class="bi bi-trash"></i> Inativar
             </button>
           </td>
@@ -463,12 +596,12 @@ function initProdutos() {
   document.getElementById('formNovoItem')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const body = {
-      name: document.getElementById('itemNome').value.trim(),
+      name:        document.getElementById('itemNome').value.trim(),
       description: document.getElementById('itemDescricao').value.trim(),
-      price: Number(document.getElementById('itemPreco').value)
+      price:       Number(document.getElementById('itemPreco').value)
     };
     try {
-      const res = await apiFetch('/luizao/items', { method: 'POST', body: JSON.stringify(body) });
+      const res  = await apiFetch('/luizao/items', { method: 'POST', body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { showAlert('itemAlertBox', data.message || 'Erro ao salvar item'); return; }
       showAlert('itemAlertBox', 'Item salvo com sucesso!', 'success');
@@ -482,7 +615,7 @@ function initProdutos() {
   async function deletarItem(id) {
     if (!confirm('Inativar este item do menu?')) return;
     try {
-      const res = await apiFetch(`/luizao/items/${id}`, { method: 'DELETE' });
+      const res  = await apiFetch(`/luizao/items/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) { showAlert('itemAlertBox', data.message || 'Erro ao inativar'); return; }
       showAlert('itemAlertBox', 'Item inativado.', 'warning');
@@ -492,14 +625,14 @@ function initProdutos() {
     }
   }
 
-  // ── Ingredientes ──────────────────────────────────────────────────────────
+  // ── Ingredientes (Estoque) ────────────────────────────────────────────────
 
   async function loadIngredientes() {
     const tbody = document.getElementById('ingredientesTableBody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Carregando...</td></tr>';
     try {
-      const res = await apiFetch('/luizao/products');
+      const res  = await apiFetch('/luizao/products');
       const ings = await res.json();
       allIngredientes = Array.isArray(ings) ? ings : [];
       if (allIngredientes.length === 0) {
@@ -513,12 +646,11 @@ function initProdutos() {
           <td>${ing.minimumStock ?? 0}</td>
           <td>${ing.quantityStock ?? 0}</td>
           <td>
-            <span class="badge ${ing.status === 'ATIVO' ? 'bg-success' : 'bg-secondary'}">
-              ${ing.status}
-            </span>
+            <span class="badge ${ing.status === 'ATIVO' ? 'bg-success' : 'bg-secondary'}">${ing.status}</span>
           </td>
           <td>
-            <button class="btn btn-sm btn-outline-danger" onclick="window.produtosAdmin.deletarIngrediente(${ing.id})">
+            <button class="btn btn-sm btn-outline-danger"
+              onclick="window.produtosAdmin.deletarIngrediente(${ing.id})">
               <i class="bi bi-trash"></i> Inativar
             </button>
           </td>
@@ -531,12 +663,12 @@ function initProdutos() {
   document.getElementById('formNovoIngrediente')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const body = {
-      name: document.getElementById('ingNome').value.trim(),
+      name:          document.getElementById('ingNome').value.trim(),
       minimum_stock: Number(document.getElementById('ingEstoqueMin').value),
       quantity_stock: Number(document.getElementById('ingEstoqueAtual').value)
     };
     try {
-      const res = await apiFetch('/luizao/products', { method: 'POST', body: JSON.stringify(body) });
+      const res  = await apiFetch('/luizao/products', { method: 'POST', body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) { showAlert('ingAlertBox', data.message || 'Erro ao salvar ingrediente'); return; }
       showAlert('ingAlertBox', 'Ingrediente salvo com sucesso!', 'success');
@@ -550,7 +682,7 @@ function initProdutos() {
   async function deletarIngrediente(id) {
     if (!confirm('Inativar este ingrediente?')) return;
     try {
-      const res = await apiFetch(`/luizao/products/${id}`, { method: 'DELETE' });
+      const res  = await apiFetch(`/luizao/products/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) { showAlert('ingAlertBox', data.message || 'Erro ao inativar'); return; }
       showAlert('ingAlertBox', 'Ingrediente inativado.', 'warning');
@@ -560,7 +692,7 @@ function initProdutos() {
     }
   }
 
-  // ── Modal de Ingredientes por Item ────────────────────────────────────────
+  // ── Modal: associar ingredientes a um item ─────────────────────────────────
 
   async function abrirIngredientes(itemId, itemName) {
     currentItemId = itemId;
@@ -576,7 +708,7 @@ function initProdutos() {
         apiFetch(`/luizao/items/${itemId}`),
         apiFetch('/luizao/products')
       ]);
-      const itemData = await resItem.json();
+      const itemData     = await resItem.json();
       const ingredientes = await resIng.json();
 
       const associados = Array.isArray(itemData.products)
@@ -591,9 +723,9 @@ function initProdutos() {
       container.innerHTML = ingredientes
         .filter(i => i.status === 'ATIVO')
         .map(ing => {
-          const assoc = associados.find(a => a.id === ing.id);
+          const assoc   = associados.find(a => a.id === ing.id);
           const checked = assoc ? 'checked' : '';
-          const qty = assoc ? assoc.quantity : 1;
+          const qty     = assoc ? assoc.quantity : 1;
           return `
             <div class="d-flex align-items-center gap-3 mb-2 p-2 border rounded">
               <input type="checkbox" class="form-check-input ing-check" id="ing-${ing.id}"
@@ -613,16 +745,16 @@ function initProdutos() {
 
   document.getElementById('btnSalvarIngredientes')?.addEventListener('click', async () => {
     if (!currentItemId) return;
-    const checks = document.querySelectorAll('.ing-check:checked');
+    const checks   = document.querySelectorAll('.ing-check:checked');
     const products = Array.from(checks).map(cb => ({
       productId: Number(cb.dataset.id),
-      quantity: Number(document.querySelector(`.ing-qty[data-id="${cb.dataset.id}"]`)?.value || 1)
+      quantity:  Number(document.querySelector(`.ing-qty[data-id="${cb.dataset.id}"]`)?.value || 1)
     }));
 
     try {
-      const res = await apiFetch(`/luizao/items/${currentItemId}/products`, {
+      const res  = await apiFetch(`/luizao/items/${currentItemId}/products`, {
         method: 'PUT',
-        body: JSON.stringify({ products })
+        body:   JSON.stringify({ products })
       });
       const data = await res.json();
       if (!res.ok) { alert(data.message || 'Erro ao salvar'); return; }
@@ -634,9 +766,9 @@ function initProdutos() {
     }
   });
 
-  // Expose para onclick inline e para menu navigation
-  window.produtosAdmin = { deletarItem, deletarIngrediente, abrirIngredientes };
-  window.loadItens = loadItens;
+  // Expose for inline onclick handlers and menu navigation
+  window.produtosAdmin  = { deletarItem, deletarIngrediente, abrirIngredientes };
+  window.loadItens       = loadItens;
   window.loadIngredientes = loadIngredientes;
 }
 
@@ -644,8 +776,8 @@ function initProdutos() {
 
 function atualizarRelogio() {
   const agora = new Date();
-  const el1 = document.getElementById('dataAtual');
-  const el2 = document.getElementById('horaAtual');
+  const el1   = document.getElementById('dataAtual');
+  const el2   = document.getElementById('horaAtual');
   if (el1) el1.textContent = agora.toLocaleDateString('pt-BR');
   if (el2) el2.textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }

@@ -4,15 +4,15 @@ const { OrderDTO } = require('../dtos/order-dto');
 
 async function save(req, res, next) {
   try {
-    if (!req.body || !req.body.code) {
-      const err = new Error('Código do pedido é obrigatório');
-      err.status = 400;
-      throw err;
-    }
+    const entity = OrderDTO.toEntity({
+      ...req.body,
+      // auto-generate code when not provided by client
+      code: req.body.code || `PED-${Date.now()}`,
+      // inject the authenticated user as owner of the sale
+      fkUser: req.user?.id ?? null
+    });
 
-    const entity = OrderDTO.toEntity(req.body);
     const response = await orderService.save(entity);
-
     return res.status(201).json(response);
   } catch (err) {
     console.error(err.message);
@@ -24,7 +24,6 @@ async function findById(req, res, next) {
   try {
     const { id } = req.params;
     const response = await orderService.findByIdOrThrow(id);
-
     return res.status(200).json(response);
   } catch (err) {
     console.error(err.message);
@@ -36,7 +35,6 @@ async function findAll(req, res, next) {
   try {
     const filters = OrderFilter.parseQuery(req.query);
     const response = await orderService.findAll(filters);
-
     return res.status(200).json(response);
   } catch (err) {
     console.error(err.message);
@@ -56,7 +54,6 @@ async function updateStatus(req, res, next) {
     }
 
     const response = await orderService.updateStatus(id, status);
-
     return res.status(200).json(response);
   } catch (err) {
     console.error(err.message);

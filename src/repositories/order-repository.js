@@ -36,10 +36,51 @@ async function updateStatus(id, status) {
   return data.rows[0] ? Order.from(data.rows[0]) : null;
 }
 
+async function findAllWithItems(filters = {}) {
+  let query = `
+    SELECT
+      O.ID          AS order_id,
+      O.CODE        AS order_code,
+      O.OBSERVATIONS AS order_obs,
+      O.ORDER_STATUS AS order_status,
+      O.CREATED_AT   AS order_created_at,
+      OI.ID          AS oi_id,
+      OI.QUANTITY    AS oi_quantity,
+      OI.AMOUNT      AS oi_amount,
+      I.ID           AS item_id,
+      I.NAME         AS item_name,
+      I.PRICE        AS item_price
+    FROM ORDERS O
+    LEFT JOIN ORDER_ITEM OI ON OI.FK_ORDER = O.ID
+    LEFT JOIN ITEM I ON I.ID = OI.FK_ITEM
+    WHERE 1=1
+  `;
+  const values = [];
+
+  if (filters.code) {
+    values.push(`%${filters.code}%`);
+    query += ` AND O.CODE ILIKE $${values.length}`;
+  }
+  if (filters.status) {
+    values.push(`%${filters.status}%`);
+    query += ` AND O.ORDER_STATUS ILIKE $${values.length}`;
+  }
+  if (filters.createdAt) {
+    values.push(filters.createdAt);
+    query += ` AND DATE(O.CREATED_AT) = DATE($${values.length})`;
+  }
+
+  query += ' ORDER BY O.CREATED_AT DESC';
+
+  const data = await pool.query(query, values);
+  return data.rows;
+}
+
 module.exports = {
   save,
   saveWithClient,
   findAll,
+  findAllWithItems,
   findById,
   updateStatus
 };
