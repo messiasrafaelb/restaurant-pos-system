@@ -17,7 +17,4 @@ async function findByIdOrThrow(id) {
   return paymentMethodDto.toResponse(item);
 }
 
-module.exports = {
-  findAll,
-  findByIdOrThrow
-};
+module.exports = { findAll, findByIdOrThrow };

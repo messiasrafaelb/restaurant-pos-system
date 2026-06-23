@@ -16,8 +16,8 @@ async function findByEmail(email) {
 
 async function save(user) {
     const query = `
-    INSERT INTO USERS (NAME, EMAIL, PASSWORD, ROLE, STATUS) 
-    VALUES ($1, $2, $3, $4, $5) 
+    INSERT INTO USERS (NAME, EMAIL, PASSWORD, ROLE) 
+    VALUES ($1, $2, $3, $4) 
     RETURNING *
   `;
     const values = userModel.toPoolParams(user);

@@ -47,6 +47,7 @@ async function findByIdOrThrow(id) {
 
 async function save(request) {
   const existing = await repository.findByEmail(request.email);
+  
   if (existing) {
     throw new AppError(MSG_EMAIL_EXISTS, 400);
   }
@@ -59,8 +60,4 @@ async function save(request) {
   return userDto.toResponse(saved);
 }
 
-module.exports = {
-  findByIdOrThrow,
-  save,
-  login
-};
+module.exports = { findByIdOrThrow, save, login };

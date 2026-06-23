@@ -6,11 +6,7 @@ function toResponse(sale) {
   return {
     id: sale.id,
     amount: sale.amount ? parseFloat(sale.amount) : 0.0,
-    discount: sale.discount ? parseFloat(sale.discount) : 0.0,
-    status: sale.status,
-    fkOrder: sale.fk_order ?? sale.fkOrder,
     fkUser: sale.fk_user ?? sale.fkUser,
-    createdAt: formatDate(sale.created_at ?? sale.createdAt)
   };
 }
 

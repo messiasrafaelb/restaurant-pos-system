@@ -12,9 +12,11 @@ async function findAll(filters = {}) {
 
 async function findByIdOrThrow(id) {
   const item = await repository.findById(id);
+
   if (!item) {
     throw new AppError(MSG_NOT_FOUND, 404);
   }
+  
   return saleDto.toResponse(item);
 }
 
@@ -31,8 +33,4 @@ async function save(request) {
   return saleDto.toResponse(savedSale);
 }
 
-module.exports = {
-  findAll,
-  findByIdOrThrow,
-  save
-};
+module.exports = { findAll, findByIdOrThrow, save };

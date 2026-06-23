@@ -24,8 +24,4 @@ async function save(request) {
   return productDto.toResponse(saved);
 }
 
-module.exports = {
-  findAll,
-  findByIdOrThrow,
-  save
-};
+module.exports = { findAll, findByIdOrThrow, save };
