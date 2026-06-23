@@ -27,17 +27,24 @@ async function findByIdOrThrow(id){
     }
 }
 
-async function updateStatus(id){
-    const product = await findByIdOrThrow(id);
-    const data = await productRepository.updateStatus(id, product.status.toLowerCase() == "ativo" ? "INATIVO" : "ATIVO");
-    return ProductDTO.fromModel(data);
+async function updateStatus(id) {
+  const product = await findByIdOrThrow(id);
+  const next = product.status.toLowerCase() === 'ativo' ? 'INATIVO' : 'ATIVO';
+  const data = await productRepository.updateStatus(id, next);
+  return ProductDTO.fromModel(data);
 }
 
+async function softDelete(id) {
+  await findByIdOrThrow(id);
+  const data = await productRepository.updateStatus(id, 'INATIVO');
+  return ProductDTO.fromModel(data);
+}
 
 module.exports = {
-    save,
-    findAll,
-    findByIdOrThrow,
-    updateStatus
-}
+  save,
+  findAll,
+  findByIdOrThrow,
+  updateStatus,
+  softDelete
+};
 

@@ -10,6 +10,14 @@ async function save(order) {
   return data.rows[0] ? Order.from(data.rows[0]) : null;
 }
 
+async function saveWithClient(order, client) {
+  const query = `INSERT INTO ORDERS (CODE, OBSERVATIONS, ORDER_STATUS, CREATED_AT) VALUES ($1, $2, $3, $4) RETURNING *`;
+  const values = Order.toDbParams(order);
+
+  const data = await client.query(query, values);
+  return data.rows[0] ? Order.from(data.rows[0]) : null;
+}
+
 async function findAll(filters = {}) {
   const { query, values } = OrderFilter.build(filters);
   const data = await pool.query(query, values);
@@ -30,6 +38,7 @@ async function updateStatus(id, status) {
 
 module.exports = {
   save,
+  saveWithClient,
   findAll,
   findById,
   updateStatus

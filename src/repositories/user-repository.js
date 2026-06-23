@@ -16,6 +16,12 @@ async function findById(id) {
     return result.rows[0];
 }
 
+async function findByEmail(email) {
+    const query = `SELECT * FROM USERS WHERE EMAIL = $1 AND STATUS = 'ATIVO'`;
+    const result = await pool.query(query, [email]);
+    return result.rows[0] || null;
+}
+
 async function save(user) {
     const query = `INSERT INTO USERS (NAME, EMAIL, PASSWORD, ROLE, STATUS) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
     const values = User.toDbParams(user);
@@ -27,5 +33,6 @@ async function save(user) {
 module.exports = {
     findAll,
     findById,
+    findByEmail,
     save,
 };
