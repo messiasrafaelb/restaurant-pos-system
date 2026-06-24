@@ -65,12 +65,6 @@ async function remove(id){
 }
 
 async function update(user){
-  const existing = await repository.findByEmail(request.email);
-  
-  if (existing) {
-    throw new AppError(MSG_EMAIL_EXISTS, 400);
-  }
-
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
 
