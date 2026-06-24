@@ -33,4 +33,15 @@ async function save(request) {
   return saleDto.toResponse(savedSale);
 }
 
-module.exports = { findAll, findByIdOrThrow, save };
+async function update(request) {
+  const sale = findByIdOrThrow(request.id);
+  const saleEntity = saleModel.toEntity(request);
+  const updatedSale = await repository.update(saleEntity);
+  return saleDto.toResponse(updatedSale);
+}
+
+async function deleteById(id) {
+  await repository.deleteById(id);
+}
+
+module.exports = { findAll, findByIdOrThrow, save, update, deleteById };

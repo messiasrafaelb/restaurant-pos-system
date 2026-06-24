@@ -15,4 +15,13 @@ function toPoolParams(sale) {
   ];
 }
 
+function toPoolParamsForUpdate(sale) {
+  return [
+    sale.amount,
+    sale.fkUser,
+    sale.fkPaymentMethod,
+    sale.id
+  ];
+}
+
 module.exports = { toEntity, toPoolParams };
