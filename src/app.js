@@ -22,7 +22,9 @@ app.use("/luizao/sales", saleRoutes);
 app.use("/luizao/auth", authRoutes);
 
 // SPA fallback — qualquer rota não-API serve o index.html
-app.get('*', (req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith('/luizao')) return next();
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

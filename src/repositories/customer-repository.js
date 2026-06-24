@@ -2,8 +2,8 @@ const pool = require("../config/db");
 const customerModel = require("../models/customer-model");
 
 async function findAll(filters = {}) {
-  const { query, values } = customerFilter.build(filters);
-  const result = await pool.query(query, values);
+  const query = `SELECT * FROM CUSTOMER`;
+  const result = await pool.query(query);
   return result.rows;
 }
 

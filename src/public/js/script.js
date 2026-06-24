@@ -23,6 +23,7 @@ function showApp() {
 
   // Visibilidade de itens admin
   const isAdmin = user?.role === 'ADMIN';
+  console.log(isAdmin);
   document.querySelectorAll('.admin-only').forEach(el => {
     el.classList.toggle('d-none', !isAdmin);
   });
