@@ -21,7 +21,6 @@ app.use("/luizao/users", userRoutes);
 app.use("/luizao/sales", saleRoutes);
 app.use("/luizao/auth", authRoutes);
 
-// SPA fallback — qualquer rota não-API serve o index.html
 app.use((req, res, next) => {
   if (req.path.startsWith('/luizao')) return next();
 

@@ -35,4 +35,22 @@ async function saveSaleProduct(fkSale, fkProduct, quantity, price) {
   return result.rows[0];
 }
 
-module.exports = { findAll, findById, save, saveSaleProduct };
+async function deleteById(id) {
+  const query = `DELETE FROM SALE WHERE ID = $1`;
+  await pool.query(query, [id]);
+}
+
+async function update(sale) {
+  const query = `
+    UPDATE SALE SET 
+      AMOUNT = $1,
+      FK_USER = $2,
+      FK_PAYMENT_METHOD = $3
+    WHERE ID = $4 RETURNING *
+  `;
+  const values = saleModel.toPoolParamsForUpdate(sale);
+  const result = await pool.query(query, values);
+  return result.rows[0];
+}
+
+module.exports = { findAll, findById, save, saveSaleProduct, deleteById, update };

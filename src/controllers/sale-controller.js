@@ -35,4 +35,27 @@ async function save(req, res, next) {
   }
 }
 
-module.exports = { findAll, findById, save };
+async function update(req, res, next) {
+  try {
+    const { id, amount, fkUser } = req.body;
+    if (!id || !amount || !fkUser) {
+      throw new AppError('ID, Valor total e Usuário são obrigatórios.', 400);
+    }
+    const sale = await service.update(req.body);
+    return res.status(200).json(sale);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function deleteById(req, res, next) {
+  try {
+    const id = req.params.id;
+    await service.deleteById(id);
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { findAll, findById, save, update, deleteById };
