@@ -233,6 +233,10 @@ async function completeSale() {
 
     showAlert('paymentAlertBox', 'Venda registrada com sucesso!', 'success');
     clearCart();
+    
+    // CORREÇÃO: Reseta o botão de volta para o texto original antes de mudar de tela
+    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Confirmar Pagamento';
+    
     setTimeout(() => showTela('tela-venda'), 1500);
   } catch (err) {
     if (err.message !== 'Não autenticado') {

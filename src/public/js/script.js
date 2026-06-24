@@ -32,6 +32,13 @@ function showApp() {
 
   // Inicializa tela de venda (sempre carregada ao entrar)
   initVenda();
+  
+  // CORREÇÃO DO BUG VISUAL: Reseta o botão de pagamento ao iniciar a tela de venda
+  const btnConfirmar = document.getElementById('btnConfirmarPagamento');
+  if (btnConfirmar) {
+    btnConfirmar.innerHTML = 'Confirmar Pagamento';
+    btnConfirmar.disabled = false;
+  }
 
   // Navegação sidebar
   document.querySelectorAll('.menu-item').forEach(btn => {
