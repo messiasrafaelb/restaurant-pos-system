@@ -21,10 +21,6 @@ app.use("/luizao/users", userRoutes);
 app.use("/luizao/sales", saleRoutes);
 app.use("/luizao/auth", authRoutes);
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 app.use((req, res, next) => {
   if (req.path.startsWith('/luizao')) return next();
 
