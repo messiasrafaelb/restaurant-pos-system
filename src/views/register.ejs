@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luizão Lanches - Acesso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/formulario.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="imagem-luiz">
+      <img src="/img/Luizão.svg" alt="Luizão Lanches">
+    </div>
+
+    <div class="separa-grid">
+      <div class="formulario-fundo">
+        <div class="formulario-info">
+
+          <div id="alertBox"></div>
+
+          <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-login"
+                data-bs-toggle="tab" data-bs-target="#painel-login"
+                type="button" role="tab">Entrar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-cadastro"
+                data-bs-toggle="tab" data-bs-target="#painel-cadastro"
+                type="button" role="tab">Cadastrar</button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+
+            <!-- LOGIN -->
+            <div class="tab-pane fade show active" id="painel-login" role="tabpanel">
+              <h2 class="mb-3">Bem-vindo</h2>
+              <form id="formLogin">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">E-mail</label>
+                  <input type="email" class="form-control" id="loginEmail"
+                    required placeholder="seu@email.com" autocomplete="email">
+                </div>
+                <div class="mb-3">
+                  <label for="loginSenha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="loginSenha"
+                    required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-success w-100">Entrar</button>
+              </form>
+            </div>
+
+            <!-- CADASTRO -->
+            <div class="tab-pane fade" id="painel-cadastro" role="tabpanel">
+              <h2 class="mb-3">Criar Conta</h2>
+              <form id="formCadastro">
+                <div class="mb-3">
+                  <label for="cadNome" class="form-label">Nome</label>
+                  <input type="text" class="form-control" id="cadNome" required autocomplete="name">
+                </div>
+                <div class="mb-3">
+                  <label for="cadEmail" class="form-label">E-mail</label>
+                  <input type="email" class="form-control" id="cadEmail" required autocomplete="email">
+                </div>
+                <div class="mb-3">
+                  <label for="cadSenha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="cadSenha"
+                    required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showAlert(message, type = 'danger') {
+      const box = document.getElementById('alertBox');
+      box.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+      setTimeout(() => {
+        const el = box.querySelector('.alert');
+        if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+      }, 4000);
+    }
+
+    // Já autenticado → vai direto para o PDV
+    if (localStorage.getItem('token')) {
+      window.location.href = '/index';
+    }
+
+    document.getElementById('formLogin').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const email    = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginSenha').value;
+
+      try {
+        const res  = await fetch('/luizao/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAlert(data.message || 'E-mail ou senha inválidos.');
+          return;
+        }
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = '/index';
+      } catch {
+        showAlert('Erro de conexão com o servidor.');
+      }
+    });
+
+    document.getElementById('formCadastro').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const name     = document.getElementById('cadNome').value.trim();
+      const email    = document.getElementById('cadEmail').value.trim();
+      const password = document.getElementById('cadSenha').value;
+
+      try {
+        const res  = await fetch('/luizao/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role: 'ATTENDANT' })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAlert(data.message || 'Erro ao criar conta.');
+          return;
+        }
+
+        showAlert('Conta criada! Faça login para continuar.', 'success');
+        document.getElementById('formCadastro').reset();
+        bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-login')).show();
+      } catch {
+        showAlert('Erro de conexão com o servidor.');
+      }
+    });
+  </script>
+</body>
+
+</html>
