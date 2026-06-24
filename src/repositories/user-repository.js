@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-const userFilter = require("./filters/user-filter");
 const userModel = require("../models/user-model");
 
 async function findById(id) {

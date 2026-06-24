@@ -14,23 +14,19 @@ async function login(email, password){
       throw new Error('E-mail ou senha inválidos.');
   }
 
-  // 2. Compara a senha digitada com a senha criptografada do banco
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
       throw new Error('E-mail ou senha inválidos.');
   }
 
-  // 3. Se tudo estiver certo, gera o Token JWT
-  // Use uma variável de ambiente (.env) para a sua chave secreta
   const secretKey = process.env.JWT_SECRET || 'sua_chave_secreta_super_segura';
   
   const token = jwt.sign(
-      { id: user.id, email: user.email }, // Dados que vão dentro do token (Payload)
+      { id: user.id, email: user.email }, 
       secretKey, 
-      { expiresIn: '1h' } // Tempo de expiração do token
+      { expiresIn: '1h' } 
   );
 
-  // Retorna os dados que o controller precisa
   return {
       user: { id: user.id, name: user.name, email: user.email },
       token

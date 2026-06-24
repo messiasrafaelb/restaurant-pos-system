@@ -1,12 +1,10 @@
 const service = require("../services/order-service");
-const orderFilter = require('../repositories/filters/order-filter');
 const AppError = require('../errors/app-error');
 
 async function findAll(req, res, next) {
   try {
-    const filters = orderFilter.parseQuery(req.query);
-    const orders = await service.findAll(filters);
-    return res.render("orders-list", { orders, filters });
+    const orders = await service.findAll();
+    return res.render("orders-list", { orders },);
   } catch (error) {
     return next(error);
   }

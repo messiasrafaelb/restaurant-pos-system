@@ -1,11 +1,9 @@
 const service = require("../services/payment-method-service");
-const paymentMethodFilter = require('../repositories/filters/payment-method-filter');
 
 async function findAll(req, res, next) {
   try {
-    const filters = paymentMethodFilter.parseQuery(req.query);
-    const paymentMethods = await service.findAll(filters);
-    return res.render("payment-methods-list", { paymentMethods, filters });
+    const paymentMethods = await service.findAll();
+    return res.render("payment-methods-list", { paymentMethods });
   } catch (error) {
     return next(error);
   }

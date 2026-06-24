@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-const customerFilter = require("./filters/customer-filter");
 const customerModel = require("../models/customer-model");
 
 async function findAll(filters = {}) {

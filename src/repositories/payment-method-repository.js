@@ -1,5 +1,4 @@
 const pool = require("../config/db");
-const paymentMethodFilter = require("./filters/payment-method-filter");
 
 async function findAll() {
   const query = `SELECT * FROM PAYMENT_METHOD`;
