@@ -49,7 +49,7 @@ async function save(req, res, next) {
 async function remove(req, res, next) {
   try {
     const id = req.params.id;
-    const removedUser = await service.findByIdOrThrow(id);
+    const removedUser = await service.remove(id);
     return res.status(200).json(removedUser);
   } catch (error) {
     return next(error);
@@ -62,7 +62,7 @@ async function update(req, res, next){
     if (!name || !email || !password) {
       throw new AppError('Nome, e-mail e senha são obrigatórios.', 400);
     }
-    const result = await service.save(req.body);
+    const result = await service.update(req.body);
     return res.status(201).json(result);
   } catch (error) {
     return next(error);

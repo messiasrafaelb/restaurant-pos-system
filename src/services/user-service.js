@@ -75,7 +75,7 @@ async function update(user){
   user.password = await bcrypt.hash(user.password, salt);
 
   const updatedUser = userModel.toEntity(user);
-  const saved = await repository.save(updatedUser);
+  const saved = await repository.update(updatedUser);
   return userDto.toResponse(saved);
 }
 
