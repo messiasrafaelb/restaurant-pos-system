@@ -17,4 +17,12 @@ function toPoolParams(user) {
   ];
 }
 
-module.exports = { toEntity, toPoolParams };
+function toPoolParamsUpdate(user) {
+  return [
+    user.name,
+    user.email,
+    user.password,
+    user.id,
+  ];
+}
+module.exports = { toEntity, toPoolParams, toPoolParamsUpdate };

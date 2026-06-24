@@ -24,4 +24,27 @@ async function save(user) {
     return result.rows[0];
 }
 
-module.exports = { findById, findByEmail, save };
+async function update(user) {
+    const query = `
+    UPDATE USERS SET
+    NAME = $1,
+    EMAIL = $2,
+    PASSWORD = $3,
+    WHERE id = $4 RETURNING *
+  `;
+    const values = userModel.toPoolParams(user);
+    const result = await pool.query(query, values);
+    return result.rows[0];
+
+}
+
+async function remove(id) {
+    const query = `
+    DELETE FROM users WHERE id = $1 RETURNING *
+  `;
+
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+}
+
+module.exports = { findById, findByEmail, save, update, remove };

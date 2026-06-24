@@ -56,4 +56,27 @@ async function save(request) {
   return userDto.toResponse(saved);
 }
 
-module.exports = { findByIdOrThrow, save, login };
+async function remove(id){
+  const item = await repository.remove(id);
+  if (!item) {
+    throw new AppError("Não foi possivel deletar o usuario", 404);
+  }
+  return userDto.toResponse(item);
+}
+
+async function update(user){
+  const existing = await repository.findByEmail(request.email);
+  
+  if (existing) {
+    throw new AppError(MSG_EMAIL_EXISTS, 400);
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
+
+  const updatedUser = userModel.toEntity(user);
+  const saved = await repository.save(updatedUser);
+  return userDto.toResponse(saved);
+}
+
+module.exports = { findByIdOrThrow, save, login, remove, update };

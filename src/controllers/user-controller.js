@@ -6,9 +6,6 @@ async function login(req, res, next){
     const email = req.body.email;
     const password = req.body.password;
 
-    console.log(email)
-    console.log(password)
-
     if (!email || !password) {
         return res.status(400).json({ message: 'E-mail e senha são obrigatórios.' });
     }
@@ -23,15 +20,6 @@ async function login(req, res, next){
     }
     
     next(error); 
-  }
-}
-
-async function findAll(req, res, next) {
-  try {
-    const users = await service.findAll();
-    return res.status(200).json(users);
-  } catch (error) {
-    return next(error);
   }
 }
 
@@ -58,4 +46,27 @@ async function save(req, res, next) {
   }
 }
 
-module.exports = { findAll, findById, save, login };
+async function remove(req, res, next) {
+  try {
+    const id = req.params.id;
+    const removedUser = await service.findByIdOrThrow(id);
+    return res.status(200).json(removedUser);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function update(req, res, next){
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      throw new AppError('Nome, e-mail e senha são obrigatórios.', 400);
+    }
+    const result = await service.save(req.body);
+    return res.status(201).json(result);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { findById, save, login, remove, update };
