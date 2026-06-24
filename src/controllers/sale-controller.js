@@ -6,7 +6,7 @@ async function findAll(req, res, next) {
   try {
     const filters = saleFilter.parseQuery(req.query);
     const sales = await service.findAll(filters);
-    return res.render("sales-list", { sales, filters });
+    return res.status(200).json(sales);
   } catch (error) {
     return next(error);
   }
@@ -16,7 +16,7 @@ async function findById(req, res, next) {
   try {
     const id = req.params.id;
     const sale = await service.findByIdOrThrow(id);
-    return res.render("sale-detail", { sale });
+    return res.status(200).json(sale);
   } catch (error) {
     return next(error);
   }
@@ -24,12 +24,12 @@ async function findById(req, res, next) {
 
 async function save(req, res, next) {
   try {
-    const { amount, fkOrder, fkUser } = req.body;
-    if (!amount || !fkOrder || !fkUser) {
-      throw new AppError('Valor total, Pedido e Usuário são obrigatórios.', 400);
+    const { amount, fkUser } = req.body;
+    if (!amount || !fkUser) {
+      throw new AppError('Valor total e Usuário são obrigatórios.', 400);
     }
-    await service.save(req.body);
-    return res.redirect("/luizao/sales");
+    const sale = await service.save(req.body);
+    return res.status(201).json(sale);
   } catch (error) {
     return next(error);
   }

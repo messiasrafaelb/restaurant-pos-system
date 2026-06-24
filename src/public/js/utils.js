@@ -1,60 +1,67 @@
-// ─── Auth helpers ────────────────────────────────────────────────────────────
 export function getToken() {
   return localStorage.getItem('token');
 }
 
 export function getUser() {
   try {
-    return JSON.parse(localStorage.getItem('user')) || {};
+    return JSON.parse(localStorage.getItem('user')) || null;
   } catch {
-    return {};
+    return null;
   }
 }
 
-export function isAdmin() {
-  return getUser().role === 'ADMIN';
+export function setAuth(token, user) {
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
 }
 
-export function authHeaders() {
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${getToken()}`
-  };
+export function clearAuth() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 }
 
-export async function apiFetch(url, options = {}) {
-  const res = await fetch(url, {
-    ...options,
-    headers: { ...authHeaders(), ...(options.headers || {}) }
-  });
+export async function apiRequest(url, options = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    clearAuth();
+    window.dispatchEvent(new Event('unauthorized'));
+    throw new Error('Não autenticado');
+  }
+
   return res;
 }
 
-// ─── Alert helpers ────────────────────────────────────────────────────────────
+export function formatCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 export function showAlert(containerId, message, type = 'danger') {
   const box = document.getElementById(containerId);
   if (!box) return;
   box.innerHTML = `
-    <div class="alert alert-${type} alert-dismissible fade show py-2" role="alert">
+    <div class="alert alert-${type} alert-dismissible fade show mb-0" role="alert">
       ${message}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>`;
   setTimeout(() => {
-    const alert = box.querySelector('.alert');
-    if (alert) bootstrap.Alert.getOrCreateInstance(alert).close();
+    const el = box.querySelector('.alert');
+    if (el) bootstrap.Alert.getOrCreateInstance(el)?.close();
   }, 4000);
 }
 
-// ─── Relógio ──────────────────────────────────────────────────────────────────
 export function iniciarRelogio() {
-  const atualizarRelogio = () => {
-    const agora = new Date();
-    const el1 = document.getElementById('dataAtual');
-    const el2 = document.getElementById('horaAtual');
-    if (el1) el1.textContent = agora.toLocaleDateString('pt-BR');
-    if (el2) el2.textContent = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const tick = () => {
+    const now = new Date();
+    const d = document.getElementById('dataAtual');
+    const h = document.getElementById('horaAtual');
+    if (d) d.textContent = now.toLocaleDateString('pt-BR');
+    if (h) h.textContent = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   };
-  
-  atualizarRelogio();
-  setInterval(atualizarRelogio, 1000);
+  tick();
+  setInterval(tick, 1000);
 }

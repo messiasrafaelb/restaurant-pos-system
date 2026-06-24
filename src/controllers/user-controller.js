@@ -29,7 +29,7 @@ async function login(req, res, next){
 async function findAll(req, res, next) {
   try {
     const users = await service.findAll();
-    return res.render("users-list", { users });
+    return res.status(200).json(users);
   } catch (error) {
     return next(error);
   }
@@ -39,7 +39,7 @@ async function findById(req, res, next) {
   try {
     const id = req.params.id;
     const user = await service.findByIdOrThrow(id);
-    return res.render("user-detail", { user });
+    return res.status(200).json(user);
   } catch (error) {
     return next(error);
   }
@@ -51,8 +51,8 @@ async function save(req, res, next) {
     if (!name || !email || !password) {
       throw new AppError('Nome, e-mail e senha são obrigatórios.', 400);
     }
-    await service.save(req.body);
-    return res.render();
+    const result = await service.save(req.body);
+    return res.status(201).json(result);
   } catch (error) {
     return next(error);
   }
