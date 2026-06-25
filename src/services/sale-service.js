@@ -6,18 +6,18 @@ const AppError = require('../errors/app-error');
 const MSG_NOT_FOUND = "Venda não encontrada.";
 
 async function findAll(filters = {}) {
-  const items = await repository.findAll(filters);
-  return items.map(saleDto.toResponse);
+  const sales = await repository.findAll(filters);
+  return sales.map(saleDto.toResponse);
 }
 
 async function findByIdOrThrow(id) {
-  const item = await repository.findById(id);
+  const sales = await repository.findById(id);
 
-  if (!item) {
+  if (!sales) {
     throw new AppError(MSG_NOT_FOUND, 404);
   }
-  
-  return saleDto.toResponse(item);
+
+  return saleDto.toResponse(sales);
 }
 
 async function save(request) {
